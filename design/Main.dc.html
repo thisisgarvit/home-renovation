@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Renovation expenses</title>
+<title>Renovation tracker</title>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -15,6 +15,7 @@ body{margin:0}
 </helmet>
 <div style="width: 390px; height: 844px; box-sizing: border-box; display: flex; flex-direction: column; background: #F6F2EB; color: #1F1C17; font-family: 'Instrument Sans', system-ui, sans-serif; overflow: hidden; position: relative">
 
+<sc-if value="{{showHeader}}" hint-placeholder-val="{{ true }}">
 <header style="padding: 12px 16px 10px; display: flex; flex-direction: column; gap: 10px">
 <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 52px">
 <div style="display: flex; align-items: center; gap: 2px; min-width: 0">
@@ -28,9 +29,12 @@ body{margin:0}
 <h1 style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 26px; font-weight: 600; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{hdr.title}}</h1>
 </div>
 </div>
-<div style="flex-shrink: 0; font-size: 13px; font-weight: 600; color: #5C564C; font-variant-numeric: tabular-nums">{{hdr.right}}</div>
+<button type="button" onClick="{{switchUser}}" aria-label="{{userAria}}" style="flex-shrink: 0; min-height: 44px; display: flex; align-items: center; gap: 6px; padding: 0 10px 0 4px; border: 1px solid #DDD5C8; border-radius: 999px; background: #FFFFFF; color: #1F1C17; font-family: inherit; font-size: 13px; font-weight: 600">
+<span style="width: 30px; height: 30px; border-radius: 15px; background: #1F1C17; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 13px">{{meInitial}}</span>
+<span>{{me}}</span>
+</button>
 </div>
-<sc-if value="{{hdr.hasProgress}}" hint-placeholder-val="{{ true }}">
+<sc-if value="{{hdr.hasProgress}}" hint-placeholder-val="{{ false }}">
 <div style="display: flex; gap: 4px" aria-hidden="true">
 <sc-for list="{{hdr.progress}}" as="p" hint-placeholder-count="4">
 <div style="flex-grow: 1; flex-basis: 0; height: 5px; border-radius: 3px; background: {{p.color}}"></div>
@@ -38,10 +42,128 @@ body{margin:0}
 </div>
 </sc-if>
 </header>
+</sc-if>
 
 <main style="flex-grow: 1; overflow-y: auto; padding: 4px 16px 28px">
 
-<sc-if value="{{w.s1}}" hint-placeholder-val="{{ true }}">
+<sc-if value="{{isWho}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; gap: 22px; padding-top: 72px">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 13px; font-weight: 600; color: #5C564C">Home renovation</div>
+<h2 style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 32px; font-weight: 600; line-height: 1.15">Who is using the app?</h2>
+<p style="margin: 0; font-size: 15px; color: #5C564C; line-height: 1.4">Your name is saved with everything you add, change or tick off.</p>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px">
+<sc-for list="{{people}}" as="p" hint-placeholder-count="3">
+<button type="button" onClick="{{p.pick}}" style="min-height: 76px; display: flex; align-items: center; gap: 14px; padding: 12px 16px; border: 1.5px solid {{p.bd}}; border-radius: 18px; background: #FFFFFF; color: #1F1C17; font-family: inherit; text-align: left">
+<span style="flex-shrink: 0; width: 48px; height: 48px; border-radius: 24px; background: #1F1C17; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-family: Fraunces, Georgia, serif; font-size: 22px; font-weight: 600">{{p.initial}}</span>
+<span style="display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 19px; font-weight: 600">{{p.name}}</span>
+<span style="font-size: 13px; color: #5C564C">{{p.hint}}</span>
+</span>
+</button>
+</sc-for>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{isTasks}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 16px">
+<div style="font-size: 14px; color: #5C564C">{{tk.summary}}</div>
+<section style="background: #FFFFFF; border: 1px solid #E4DDD1; border-radius: 18px; padding: 12px; display: flex; flex-direction: column; gap: 12px">
+<label for="newtask" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">New task</label>
+<input id="newtask" type="text" placeholder="+ Add a task, e.g. Order kitchen sink" value="{{tk.draft.title}}" onChange="{{tk.onTitle}}" style="min-height: 52px; box-sizing: border-box; padding: 10px 14px; border: 1px solid #DDD5C8; border-radius: 12px; background: #F6F2EB; color: #1F1C17; font-family: inherit; font-size: 16px">
+<sc-if value="{{tk.typing}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<div id="twho" style="font-size: 14px; font-weight: 600">Who does it depend on?</div>
+<div role="group" aria-labelledby="twho" style="display: flex; flex-wrap: wrap; gap: 6px">
+<sc-for list="{{tk.whoOpts}}" as="o" hint-placeholder-count="9">
+<button type="button" onClick="{{o.pick}}" aria-pressed="{{o.pressed}}" style="min-height: 44px; padding: 0 14px; border: 1.5px solid {{o.bd}}; border-radius: 999px; background: {{o.bg}}; color: {{o.fg}}; font-family: inherit; font-size: 14px; font-weight: 600">{{o.label}}</button>
+</sc-for>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<div id="troom" style="font-size: 14px; font-weight: 600">Room <span style="font-weight: 400; color: #5C564C">(optional)</span></div>
+<div role="group" aria-labelledby="troom" style="display: flex; flex-wrap: wrap; gap: 6px">
+<sc-for list="{{tk.roomOpts}}" as="o" hint-placeholder-count="8">
+<button type="button" onClick="{{o.pick}}" aria-pressed="{{o.pressed}}" style="min-height: 44px; padding: 0 14px; border: 1.5px solid {{o.bd}}; border-radius: 999px; background: {{o.bg}}; color: {{o.fg}}; font-family: inherit; font-size: 14px; font-weight: 600">{{o.label}}</button>
+</sc-for>
+</div>
+</div>
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+<label for="tdue" style="font-size: 14px; font-weight: 600">Due by <span style="font-weight: 400; color: #5C564C">(optional)</span></label>
+<input id="tdue" type="date" value="{{tk.draft.due}}" min="{{today}}" onChange="{{tk.onDue}}" style="min-height: 44px; box-sizing: border-box; padding: 6px 10px; border: 1px solid #DDD5C8; border-radius: 10px; background: #FFFFFF; color: #1F1C17; font-family: inherit; font-size: 15px">
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+<button type="button" onClick="{{tk.cancel}}" style="min-height: 48px; border: 1px solid #1F1C17; border-radius: 12px; background: transparent; color: #1F1C17; font-family: inherit; font-size: 15px; font-weight: 600">Cancel</button>
+<button type="button" onClick="{{tk.add}}" disabled="{{tk.cantAdd}}" style="min-height: 48px; border: 0; border-radius: 12px; background: {{tk.addBg}}; color: {{tk.addFg}}; font-family: inherit; font-size: 15px; font-weight: 600">Add task</button>
+</div>
+</div>
+</sc-if>
+</section>
+<div role="group" aria-label="Group tasks by" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; padding: 4px; background: #EAE3D8; border-radius: 12px">
+<sc-for list="{{tk.groupOpts}}" as="g" hint-placeholder-count="2">
+<button type="button" onClick="{{g.pick}}" aria-pressed="{{g.pressed}}" style="min-height: 44px; border: 0; border-radius: 9px; background: {{g.bg}}; color: {{g.fg}}; font-family: inherit; font-size: 14px; font-weight: 600">{{g.label}}</button>
+</sc-for>
+</div>
+<sc-for list="{{tk.groups}}" as="grp" hint-placeholder-count="3">
+<section style="display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 0 4px">
+<h2 style="margin: 0; font-size: 14px; font-weight: 600; color: #5C564C">{{grp.title}}</h2>
+<span style="font-size: 13px; color: #5C564C">{{grp.count}}</span>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #E4DDD1; border-radius: 16px; display: flex; flex-direction: column">
+<sc-for list="{{grp.items}}" as="t" hint-placeholder-count="2">
+<div style="display: flex; align-items: center; gap: 4px; padding: 6px 12px 6px 4px; border-top: {{t.border}}">
+<button type="button" onClick="{{t.toggle}}" aria-pressed="{{t.pressed}}" aria-label="{{t.aria}}" style="flex-shrink: 0; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; background: transparent">
+<span style="width: 26px; height: 26px; box-sizing: border-box; border: 2px solid #1F1C17; border-radius: 8px; background: {{t.boxBg}}; display: flex; align-items: center; justify-content: center">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{t.tick}}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+</span>
+</button>
+<div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; padding: 6px 0">
+<span style="font-size: 15px; font-weight: 600; line-height: 1.3; text-decoration: {{t.deco}}; color: {{t.color}}">{{t.title}}</span>
+<span style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px; color: #5C564C">
+<sc-if value="{{t.overdue}}" hint-placeholder-val="{{ false }}">
+<span style="font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 999px; background: #F6DEDA; color: #9E2A1E">Overdue</span>
+</sc-if>
+<span>{{t.sub}}</span>
+</span>
+</div>
+</div>
+</sc-for>
+</div>
+</section>
+</sc-for>
+<sc-if value="{{tk.noOpen}}" hint-placeholder-val="{{ false }}">
+<div style="background: #FFFFFF; border: 1px solid #E4DDD1; border-radius: 16px; padding: 24px 20px; text-align: center; font-size: 15px; color: #5C564C">Nothing pending. Add a task above.</div>
+</sc-if>
+<sc-if value="{{tk.hasDone}}" hint-placeholder-val="{{ true }}">
+<button type="button" onClick="{{tk.toggleDone}}" aria-expanded="{{tk.doneExpanded}}" style="min-height: 48px; display: flex; align-items: center; justify-content: space-between; padding: 0 14px; border: 1px dashed #CFC5B5; border-radius: 12px; background: transparent; color: #1F1C17; font-family: inherit; font-size: 14px; font-weight: 600">
+<span>{{tk.doneLabel}}</span><span style="font-size: 20px; line-height: 1; color: #5C564C">{{tk.doneSign}}</span>
+</button>
+</sc-if>
+<sc-if value="{{tk.showDone}}" hint-placeholder-val="{{ false }}">
+<div style="background: #FFFFFF; border: 1px solid #E4DDD1; border-radius: 16px; display: flex; flex-direction: column">
+<sc-for list="{{tk.done}}" as="t" hint-placeholder-count="3">
+<div style="display: flex; align-items: center; gap: 4px; padding: 6px 12px 6px 4px; border-top: {{t.border}}">
+<button type="button" onClick="{{t.toggle}}" aria-pressed="{{t.pressed}}" aria-label="{{t.aria}}" style="flex-shrink: 0; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; background: transparent">
+<span style="width: 26px; height: 26px; box-sizing: border-box; border: 2px solid #1F1C17; border-radius: 8px; background: {{t.boxBg}}; display: flex; align-items: center; justify-content: center">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{t.tick}}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+</span>
+</button>
+<div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; padding: 6px 0">
+<span style="font-size: 15px; font-weight: 600; text-decoration: {{t.deco}}; color: {{t.color}}">{{t.title}}</span>
+<span style="font-size: 13px; color: #5C564C">{{t.sub}}</span>
+</div>
+</div>
+</sc-for>
+</div>
+</sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{w.s1}}" hint-placeholder-val="{{ false }}">
 <div style="display: flex; flex-direction: column; gap: 18px; padding-top: 6px">
 <h2 style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 24px; font-weight: 600">How much did you pay?</h2>
 <div style="background: #FFFFFF; border: 1px solid #E4DDD1; border-radius: 18px; padding: 18px 16px; display: flex; flex-direction: column; gap: 8px">
@@ -98,6 +220,23 @@ body{margin:0}
 </div>
 </sc-if>
 
+<sc-if value="{{w.s2crew}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 14px; padding-top: 6px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h2 style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 24px; font-weight: 600">Which crew is this for?</h2>
+<p style="margin: 0; font-size: 14px; color: #5C564C">The payment will show up under that crew in Workers.</p>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<sc-for list="{{w.crewOpts}}" as="c" hint-placeholder-count="3">
+<button type="button" onClick="{{c.pick}}" aria-pressed="{{c.pressed}}" style="min-height: 64px; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 2px; padding: 10px 14px; border: 1.5px solid {{c.bd}}; border-radius: 14px; background: {{c.bg}}; color: {{c.fg}}; font-family: inherit; text-align: left">
+<span style="font-size: 16px; font-weight: 600">{{c.label}}</span>
+<span style="font-size: 13px; color: {{c.hintColor}}">{{c.hint}}</span>
+</button>
+</sc-for>
+</div>
+</div>
+</sc-if>
+
 <sc-if value="{{w.s3}}" hint-placeholder-val="{{ false }}">
 <div style="display: flex; flex-direction: column; gap: 14px; padding-top: 6px">
 <h2 style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 24px; font-weight: 600">Where was it used?</h2>
@@ -127,8 +266,16 @@ body{margin:0}
 </div>
 </sc-if>
 <div style="font-size: 14px; color: #5C564C">{{w.dates.text}}</div>
-<div style="display: flex; flex-direction: column; gap: 12px; border-top: 1px solid #E4DDD1; padding-top: 16px">
+<div style="display: flex; flex-direction: column; gap: 14px; border-top: 1px solid #E4DDD1; padding-top: 16px">
 <h3 style="margin: 0; font-size: 17px; font-weight: 600">Anything else? <span style="font-weight: 400; color: #5C564C">(optional)</span></h3>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<div id="paidby" style="font-size: 14px; font-weight: 600">Paid by</div>
+<div role="group" aria-labelledby="paidby" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px">
+<sc-for list="{{w.paidBy}}" as="p" hint-placeholder-count="3">
+<button type="button" onClick="{{p.pick}}" aria-pressed="{{p.pressed}}" style="min-height: 48px; border: 1.5px solid {{p.bd}}; border-radius: 12px; background: {{p.bg}}; color: {{p.fg}}; font-family: inherit; font-size: 15px; font-weight: 600">{{p.label}}</button>
+</sc-for>
+</div>
+</div>
 <div style="display: flex; flex-direction: column; gap: 6px">
 <label for="payee" style="font-size: 14px; font-weight: 600">Paid to</label>
 <input id="payee" type="text" placeholder="Name or shop" value="{{w.payee}}" onChange="{{w.onPayee}}" style="min-height: 52px; box-sizing: border-box; padding: 10px 14px; border: 1px solid #DDD5C8; border-radius: 12px; background: #FFFFFF; color: #1F1C17; font-family: inherit; font-size: 16px">
@@ -153,8 +300,8 @@ body{margin:0}
 <div style="display: flex; flex-direction: column; gap: 14px; padding-top: 6px">
 <h2 style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 24px; font-weight: 600">{{w.reviewTitle}}</h2>
 <div style="background: #FFFFFF; border: 1px solid #E4DDD1; border-radius: 18px; display: flex; flex-direction: column">
-<sc-for list="{{w.review}}" as="r" hint-placeholder-count="6">
-<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 8px 10px 16px; border-top: {{r.border}}">
+<sc-for list="{{w.review}}" as="r" hint-placeholder-count="7">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 8px 8px 16px; border-top: {{r.border}}">
 <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
 <span style="font-size: 13px; color: #5C564C">{{r.k}}</span>
 <span style="font-size: 17px; font-weight: 600">{{r.v}}</span>
@@ -163,7 +310,7 @@ body{margin:0}
 </div>
 </sc-for>
 </div>
-<div style="font-size: 13px; color: #5C564C">Added by {{me}}</div>
+<div style="font-size: 13px; color: #5C564C">Saved as added by {{me}}</div>
 </div>
 </sc-if>
 
@@ -174,6 +321,9 @@ body{margin:0}
 </div>
 <h2 style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 28px; font-weight: 600">Saved</h2>
 <p style="margin: 0; font-size: 16px; line-height: 1.4">{{w.lastSaved}}</p>
+<sc-if value="{{w.hasLinked}}" hint-placeholder-val="{{ false }}">
+<p style="margin: 0; font-size: 14px; font-weight: 600">{{w.lastLinked}}</p>
+</sc-if>
 <p style="margin: 0; font-size: 14px; color: #5C564C">Everyone using the app sees it right away.</p>
 </div>
 </sc-if>
@@ -259,6 +409,10 @@ body{margin:0}
 <button type="button" onClick="{{clearSample}}" style="flex-shrink: 0; min-height: 44px; padding: 0 14px; border: 1px solid #1F1C17; border-radius: 10px; background: transparent; color: #1F1C17; font-family: inherit; font-size: 14px; font-weight: 600">Clear</button>
 </div>
 </sc-if>
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 0 4px">
+<span style="font-size: 14px; color: #5C564C">{{listCount}}</span>
+<span style="font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums">{{listNet}}</span>
+</div>
 <div role="group" aria-label="Group by" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; background: #EAE3D8; border-radius: 12px">
 <sc-for list="{{groupOpts}}" as="g" hint-placeholder-count="3">
 <button type="button" onClick="{{g.pick}}" aria-pressed="{{g.pressed}}" style="min-height: 44px; border: 0; border-radius: 9px; background: {{g.bg}}; color: {{g.fg}}; font-family: inherit; font-size: 14px; font-weight: 600">{{g.label}}</button>
@@ -346,6 +500,17 @@ body{margin:0}
 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg>
 </button>
 </sc-if>
+<section style="display: flex; flex-direction: column; gap: 8px">
+<h2 style="margin: 0; padding: 0 4px; font-size: 14px; font-weight: 600; color: #5C564C">History</h2>
+<div style="background: #FFFFFF; border: 1px solid #E4DDD1; border-radius: 16px; display: flex; flex-direction: column">
+<sc-for list="{{ent.history}}" as="h" hint-placeholder-count="1">
+<div style="display: flex; justify-content: space-between; gap: 12px; padding: 12px 16px; border-top: {{h.border}}; font-size: 14px">
+<span><span style="font-weight: 600">{{h.what}}</span> by {{h.by}}</span>
+<span style="color: #5C564C; white-space: nowrap">{{h.when}}</span>
+</div>
+</sc-for>
+</div>
+</section>
 <div style="display: flex; flex-direction: column; gap: 8px">
 <sc-if value="{{ent.canReturn}}" hint-placeholder-val="{{ true }}">
 <button type="button" onClick="{{ent.recordReturn}}" style="min-height: 52px; border: 0; border-radius: 14px; background: #1F1C17; color: #FFFFFF; font-family: inherit; font-size: 16px; font-weight: 600">Record a return from this bill</button>
@@ -575,7 +740,7 @@ body{margin:0}
 
 <sc-if value="{{isWorkers}}" hint-placeholder-val="{{ false }}">
 <div style="display: flex; flex-direction: column; gap: 16px">
-<p style="margin: 0; font-size: 14px; color: #5C564C; line-height: 1.4">For workers paid by the day, like painters. Mark holidays and see what you owe.</p>
+<p style="margin: 0; font-size: 14px; color: #5C564C; line-height: 1.4">For workers paid by the day. Payments come in on their own from Expenses.</p>
 <div style="display: flex; flex-wrap: wrap; gap: 8px">
 <sc-for list="{{crewChips}}" as="c" hint-placeholder-count="1">
 <button type="button" onClick="{{c.pick}}" aria-pressed="{{c.pressed}}" style="min-height: 44px; padding: 0 16px; border: 1.5px solid {{c.bd}}; border-radius: 999px; background: {{c.bg}}; color: {{c.fg}}; font-family: inherit; font-size: 14px; font-weight: 600">{{c.label}}</button>
@@ -584,19 +749,20 @@ body{margin:0}
 </div>
 
 <sc-if value="{{nc.show}}" hint-placeholder-val="{{ false }}">
-<section style="background: #FFFFFF; border: 1px solid #E4DDD1; border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+<section style="background: #FFFFFF; border: 1px solid #E4DDD1; border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 14px">
 <h2 style="margin: 0; font-size: 17px; font-weight: 600">New crew</h2>
 <div style="display: flex; flex-direction: column; gap: 6px">
-<div id="nctrade" style="font-size: 14px; font-weight: 600">Work</div>
-<div role="group" aria-labelledby="nctrade" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px">
-<sc-for list="{{nc.trades}}" as="t" hint-placeholder-count="4">
-<button type="button" onClick="{{t.pick}}" aria-pressed="{{t.pressed}}" style="min-height: 48px; border: 1.5px solid {{t.bd}}; border-radius: 12px; background: {{t.bg}}; color: {{t.fg}}; font-family: inherit; font-size: 14px; font-weight: 600">{{t.label}}</button>
-</sc-for>
-</div>
+<label for="ncname" style="font-size: 14px; font-weight: 600">Name</label>
+<input id="ncname" type="text" placeholder="e.g. Ramesh's team" value="{{nc.name}}" onChange="{{nc.onName}}" style="min-height: 52px; box-sizing: border-box; padding: 10px 14px; border: 1px solid #DDD5C8; border-radius: 12px; background: #FFFFFF; color: #1F1C17; font-family: inherit; font-size: 16px">
 </div>
 <div style="display: flex; flex-direction: column; gap: 6px">
-<label for="ncname" style="font-size: 14px; font-weight: 600">Name</label>
-<input id="ncname" type="text" placeholder="e.g. Painters, Ramesh's team" value="{{nc.name}}" onChange="{{nc.onName}}" style="min-height: 52px; box-sizing: border-box; padding: 10px 14px; border: 1px solid #DDD5C8; border-radius: 12px; background: #FFFFFF; color: #1F1C17; font-family: inherit; font-size: 16px">
+<div id="nctrade" style="font-size: 14px; font-weight: 600">Category</div>
+<p style="margin: 0; font-size: 13px; color: #5C564C">Payments added under this category are counted for this crew.</p>
+<div role="group" aria-labelledby="nctrade" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px">
+<sc-for list="{{nc.trades}}" as="t" hint-placeholder-count="8">
+<button type="button" onClick="{{t.pick}}" aria-pressed="{{t.pressed}}" style="min-height: 48px; padding: 0 12px; border: 1.5px solid {{t.bd}}; border-radius: 12px; background: {{t.bg}}; color: {{t.fg}}; font-family: inherit; font-size: 14px; font-weight: 600; text-align: left">{{t.label}}</button>
+</sc-for>
+</div>
 </div>
 <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
 <div style="display: flex; flex-direction: column; gap: 6px">
@@ -610,7 +776,8 @@ body{margin:0}
 </div>
 <div style="display: flex; flex-direction: column; gap: 6px">
 <label for="ncstart" style="font-size: 14px; font-weight: 600">Start date</label>
-<input id="ncstart" type="date" value="{{nc.start}}" onChange="{{nc.onStart}}" style="min-height: 52px; box-sizing: border-box; padding: 10px 14px; border: 1px solid #DDD5C8; border-radius: 12px; background: #FFFFFF; color: #1F1C17; font-family: inherit; font-size: 16px">
+<input id="ncstart" type="date" value="{{nc.start}}" max="{{today}}" onChange="{{nc.onStart}}" style="min-height: 52px; box-sizing: border-box; padding: 10px 14px; border: 1px solid #DDD5C8; border-radius: 12px; background: #FFFFFF; color: #1F1C17; font-family: inherit; font-size: 16px">
+<span style="font-size: 13px; color: #5C564C">You add the end date once the work is done.</span>
 </div>
 <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
 <button type="button" onClick="{{nc.cancel}}" style="min-height: 52px; border: 1px solid #1F1C17; border-radius: 14px; background: transparent; color: #1F1C17; font-family: inherit; font-size: 15px; font-weight: 600">Cancel</button>
@@ -622,21 +789,13 @@ body{margin:0}
 <sc-if value="{{hasCrew}}" hint-placeholder-val="{{ true }}">
 <div style="display: flex; flex-direction: column; gap: 16px">
 <section style="background: #FFFFFF; border: 1px solid #E4DDD1; border-radius: 18px; padding: 16px 12px; display: flex; flex-direction: column; gap: 14px">
-<div style="display: flex; flex-direction: column; gap: 2px; padding: 0 4px">
+<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; padding: 0 4px">
+<div style="display: flex; flex-direction: column; gap: 2px">
 <h2 style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 22px; font-weight: 600">{{crew.name}}</h2>
 <span style="font-size: 14px; color: #5C564C">{{crew.sub}}</span>
 </div>
-<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 0 4px">
-<div style="display: flex; flex-direction: column; gap: 6px">
-<label for="cstart" style="font-size: 13px; font-weight: 600">Start date</label>
-<input id="cstart" type="date" value="{{crew.start}}" onChange="{{crew.onStart}}" style="min-height: 48px; box-sizing: border-box; width: 100%; padding: 8px 10px; border: 1px solid #DDD5C8; border-radius: 12px; background: #FFFFFF; color: #1F1C17; font-family: inherit; font-size: 15px">
+<span style="flex-shrink: 0; font-size: 12px; font-weight: 600; padding: 4px 9px; border-radius: 999px; background: {{crew.statusBg}}; color: {{crew.statusFg}}">{{crew.status}}</span>
 </div>
-<div style="display: flex; flex-direction: column; gap: 6px">
-<label for="cend" style="font-size: 13px; font-weight: 600">End date</label>
-<input id="cend" type="date" value="{{crew.end}}" min="{{crew.start}}" onChange="{{crew.onEnd}}" style="min-height: 48px; box-sizing: border-box; width: 100%; padding: 8px 10px; border: 1px solid #DDD5C8; border-radius: 12px; background: #FFFFFF; color: #1F1C17; font-family: inherit; font-size: 15px">
-</div>
-</div>
-<p style="margin: 0; padding: 0 4px; font-size: 13px; color: #5C564C">{{crew.endHint}}</p>
 <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
 <sc-for list="{{crew.stats}}" as="st" hint-placeholder-count="3">
 <div style="background: #F6F2EB; border-radius: 12px; padding: 10px; display: flex; flex-direction: column; gap: 2px">
@@ -664,9 +823,29 @@ body{margin:0}
 <div style="display: flex; flex-wrap: wrap; gap: 6px 14px; padding: 4px 4px 0; font-size: 12px">
 <span style="display: flex; align-items: center; gap: 6px"><span style="width: 12px; height: 12px; border-radius: 3px; background: #1F1C17"></span>Worked</span>
 <span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; border: 1.5px dashed #9E2A1E"></span>Holiday</span>
-<span style="display: flex; align-items: center; gap: 6px"><span style="width: 12px; height: 12px; border-radius: 3px; background: #EAE3D8"></span>Coming up</span>
 </div>
 <button type="button" onClick="{{crew.sundaysOff}}" style="align-self: flex-start; min-height: 44px; padding: 0 4px; border: 0; background: transparent; color: #1F1C17; font-family: inherit; font-size: 14px; font-weight: 600; text-decoration: underline">Mark all Sundays as holidays</button>
+</div>
+<div style="border-top: 1px solid #EFE9DF; padding: 12px 4px 0; display: flex; flex-direction: column; gap: 10px">
+<sc-if value="{{crew.canFinish}}" hint-placeholder-val="{{ true }}">
+<button type="button" onClick="{{crew.startFinish}}" style="min-height: 52px; border: 1px solid #1F1C17; border-radius: 14px; background: transparent; color: #1F1C17; font-family: inherit; font-size: 15px; font-weight: 600">Work has finished</button>
+</sc-if>
+<sc-if value="{{crew.finishing}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<label for="cend" style="font-size: 14px; font-weight: 600">Last working day</label>
+<input id="cend" type="date" value="{{crew.finishDate}}" min="{{crew.start}}" max="{{today}}" onChange="{{crew.onFinishDate}}" style="min-height: 52px; box-sizing: border-box; padding: 10px 14px; border: 1px solid #DDD5C8; border-radius: 12px; background: #FFFFFF; color: #1F1C17; font-family: inherit; font-size: 16px">
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+<button type="button" onClick="{{crew.cancelFinish}}" style="min-height: 52px; border: 1px solid #1F1C17; border-radius: 14px; background: transparent; color: #1F1C17; font-family: inherit; font-size: 15px; font-weight: 600">Cancel</button>
+<button type="button" onClick="{{crew.confirmFinish}}" style="min-height: 52px; border: 0; border-radius: 14px; background: #1F1C17; color: #FFFFFF; font-family: inherit; font-size: 15px; font-weight: 600">Mark finished</button>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{crew.isFinished}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 14px">
+<span>{{crew.finishedText}}</span>
+<button type="button" onClick="{{crew.reopen}}" style="min-height: 44px; padding: 0 4px; border: 0; background: transparent; color: #1F1C17; font-family: inherit; font-size: 14px; font-weight: 600; text-decoration: underline">Reopen</button>
+</div>
+</sc-if>
 </div>
 </section>
 
@@ -678,7 +857,21 @@ body{margin:0}
 <span style="font-weight: {{mo.weight}}; font-variant-numeric: tabular-nums; white-space: nowrap">{{mo.v}}</span>
 </div>
 </sc-for>
-<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding-top: 4px">
+<h3 style="margin: 8px 0 0; font-size: 14px; font-weight: 600; color: #5C564C">Payments, from Expenses</h3>
+<sc-if value="{{crew.hasPayments}}" hint-placeholder-val="{{ true }}">
+<div style="border: 1px solid #EFE9DF; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden">
+<sc-for list="{{crew.payments}}" as="p" hint-placeholder-count="2">
+<button type="button" onClick="{{p.open}}" style="display: flex; justify-content: space-between; align-items: center; gap: 12px; width: 100%; min-height: 52px; padding: 8px 12px; border: 0; border-top: {{p.border}}; background: transparent; text-align: left; font-family: inherit; color: #1F1C17">
+<span style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px; font-weight: 600">{{p.title}}</span><span style="font-size: 12px; color: #5C564C">{{p.sub}}</span></span>
+<span style="font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums">{{p.amountText}}</span>
+</button>
+</sc-for>
+</div>
+</sc-if>
+<p style="margin: 0; font-size: 13px; color: #5C564C; line-height: 1.4">{{crew.payHint}}</p>
+<details style="border-top: 1px solid #EFE9DF; padding-top: 10px">
+<summary style="min-height: 44px; display: flex; align-items: center; font-size: 14px; font-weight: 600; cursor: pointer">Edit crew details</summary>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding-top: 6px">
 <div style="display: flex; flex-direction: column; gap: 6px">
 <label for="cpeople" style="font-size: 13px; font-weight: 600">People</label>
 <input id="cpeople" type="text" inputmode="numeric" value="{{crew.people}}" onChange="{{crew.onPeople}}" style="min-height: 48px; box-sizing: border-box; width: 100%; padding: 8px 12px; border: 1px solid #DDD5C8; border-radius: 12px; background: #FFFFFF; color: #1F1C17; font-family: inherit; font-size: 15px">
@@ -687,10 +880,12 @@ body{margin:0}
 <label for="crate" style="font-size: 13px; font-weight: 600">₹ per person a day</label>
 <input id="crate" type="text" inputmode="numeric" value="{{crew.rate}}" onChange="{{crew.onRate}}" style="min-height: 48px; box-sizing: border-box; width: 100%; padding: 8px 12px; border: 1px solid #DDD5C8; border-radius: 12px; background: #FFFFFF; color: #1F1C17; font-family: inherit; font-size: 15px">
 </div>
+<div style="display: flex; flex-direction: column; gap: 6px; grid-column: span 2">
+<label for="cstart" style="font-size: 13px; font-weight: 600">Start date</label>
+<input id="cstart" type="date" value="{{crew.start}}" max="{{today}}" onChange="{{crew.onStart}}" style="min-height: 48px; box-sizing: border-box; width: 100%; padding: 8px 12px; border: 1px solid #DDD5C8; border-radius: 12px; background: #FFFFFF; color: #1F1C17; font-family: inherit; font-size: 15px">
 </div>
-<sc-if value="{{crew.hasBalance}}" hint-placeholder-val="{{ true }}">
-<button type="button" onClick="{{crew.pay}}" style="min-height: 52px; border: 0; border-radius: 14px; background: #1F1C17; color: #FFFFFF; font-family: inherit; font-size: 16px; font-weight: 600">{{crew.payLabel}}</button>
-</sc-if>
+</div>
+</details>
 </section>
 </div>
 </sc-if>
@@ -702,7 +897,7 @@ body{margin:0}
 
 </main>
 
-<sc-if value="{{bar.show}}" hint-placeholder-val="{{ true }}">
+<sc-if value="{{bar.show}}" hint-placeholder-val="{{ false }}">
 <div style="padding: 10px 16px 12px; background: #FFFFFF; border-top: 1px solid #E4DDD1; display: flex; flex-direction: column; gap: 8px">
 <sc-if value="{{bar.hasHint}}" hint-placeholder-val="{{ false }}">
 <div style="font-size: 13px; color: #5C564C; text-align: center">{{bar.hint}}</div>
@@ -716,7 +911,12 @@ body{margin:0}
 </div>
 </sc-if>
 
-<nav aria-label="Main" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); background: #FFFFFF; border-top: 1px solid #E4DDD1; padding: 4px 6px 10px">
+<sc-if value="{{showNav}}" hint-placeholder-val="{{ true }}">
+<nav aria-label="Main" style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); background: #FFFFFF; border-top: 1px solid #E4DDD1; padding: 4px 4px 10px">
+<button type="button" onClick="{{goTasks}}" aria-current="{{tabs.tasks.current}}" style="min-height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border: 0; background: transparent; color: {{tabs.tasks.color}}; font-family: inherit; font-size: 12px; font-weight: 600">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="4"></rect><path d="M8 12.5l3 3 5-6"></path></svg>
+<span style="border-bottom: 2px solid {{tabs.tasks.line}}; padding-bottom: 1px">Tasks</span>
+</button>
 <button type="button" onClick="{{goAdd}}" aria-current="{{tabs.add.current}}" style="min-height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border: 0; background: transparent; color: {{tabs.add.color}}; font-family: inherit; font-size: 12px; font-weight: 600">
 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v8M8 12h8"></path></svg>
 <span style="border-bottom: 2px solid {{tabs.add.line}}; padding-bottom: 1px">Add</span>
@@ -734,6 +934,7 @@ body{margin:0}
 <span style="border-bottom: 2px solid {{tabs.workers.line}}; padding-bottom: 1px">Workers</span>
 </button>
 </nav>
+</sc-if>
 
 <sc-if value="{{hasToast}}" hint-placeholder-val="{{ false }}">
 <div role="status" style="position: absolute; left: 16px; right: 16px; bottom: 90px; padding: 12px 16px; border-radius: 12px; background: #1F1C17; color: #FFFFFF; font-size: 14px; font-weight: 500; text-align: center">{{toast}}</div>
@@ -741,7 +942,7 @@ body{margin:0}
 
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"start":{"editor":"enum","options":["add-amount","add-what","add-material","add-other","add-where","add-when","add-review","add-done","return-pick","return-amount","return-done","list","entry","insights","room","workers"],"default":"add-amount"},"sample":{"editor":"boolean","default":true},"user":{"editor":"enum","options":["Garvit","Mom"],"default":"Garvit"},"$preview":{"width":390,"height":844}}'>
+<script type="text/x-dc" data-dc-script data-props='{"start":{"editor":"enum","options":["who","tasks","tasks-add","add-amount","add-what","add-material","add-other","add-crew","add-where","add-when","add-review","add-done","return-pick","return-amount","return-done","list","entry","insights","room","workers","workers-finish","workers-new"],"default":"who"},"sample":{"editor":"boolean","default":true},"user":{"editor":"enum","options":["Garvit","Manmohan","Rekha"],"default":"Garvit"},"$preview":{"width":390,"height":844}}'>
 class Component extends DCLogic {
   constructor(props) {
     super(props);
@@ -749,19 +950,22 @@ class Component extends DCLogic {
     const sample = props.sample ?? true;
     const expenses = sample ? this.seed() : [];
     const base = {
-      screen: 'add', step: 1, sub: false, done: false, lastSaved: '', draft: this.blankDraft(),
+      me: props.user || 'Garvit', lastUser: props.user || 'Garvit',
+      screen: 'tasks', step: 1, sub: false, done: false, lastSaved: '', lastLinked: '', draft: this.blankDraft(),
       ret: this.blankRet(), expenses, hasSample: sample, groupBy: 'date',
       entryId: null, entryBack: 'list', confirmDel: false, budget: '', room: null, week: null,
-      crews: sample ? this.seedCrews() : [], crewId: sample ? 1 : null, newCrew: null, toast: null
+      crews: sample ? this.seedCrews() : [], crewId: sample ? 1 : null, newCrew: null, finishing: null,
+      tasks: sample ? this.seedTasks() : [], taskDraft: this.blankTask(), taskGroup: 'who', showDone: false,
+      toast: null
     };
-    this.state = Object.assign(base, this.preset(props.start || 'add-amount', expenses));
+    this.state = Object.assign(base, this.preset(props.start || 'who', expenses));
   }
 
   componentWillUnmount() { clearTimeout(this.toastTimer); }
 
   lists() {
     if (this._lists) return this._lists;
-    this._lists = {
+    const L = {
       cats: [
         { id: 'material', label: 'Raw material', type: 'Raw material' },
         { id: 'mistry', label: 'Mistry', type: 'Labour' },
@@ -782,13 +986,16 @@ class Component extends DCLogic {
       rooms: ['Living room', 'Bathroom', "Mother's room", 'Study room', 'Main bedroom', 'Balcony', 'Kitchen', 'Whole house'],
       mats: ['Tiles', 'Paint', 'Lights', 'Wires & switches', 'Pipes & fittings', 'Cement & sand', 'Plywood', 'Hardware', 'Sanitaryware', 'Other'],
       modes: ['Cash', 'UPI', 'Card', 'Bank'],
+      family: ['Garvit', 'Manmohan', 'Rekha'],
+      taskWho: ['Garvit', 'Manmohan', 'Rekha', 'Designer', 'Mistry', 'Plumber', 'Electrician', 'Painter', 'Carpenter'],
       types: ['Labour', 'Raw material', 'Interior designer', 'Other'],
-      typeColors: { 'Labour': '#2a78d6', 'Raw material': '#c2562b', 'Interior designer': '#1f8a70', 'Other': '#8a5bb8' },
-      trades: [['painter', 'Painter'], ['mazdur', 'Mazdur'], ['mistry', 'Mistry'], ['other', 'Other']]
+      typeColors: { 'Labour': '#2a78d6', 'Raw material': '#c2562b', 'Interior designer': '#1f8a70', 'Other': '#8a5bb8' }
     };
-    this._lists.catById = {};
-    this._lists.cats.forEach((c) => { this._lists.catById[c.id] = c; });
-    return this._lists;
+    L.catById = {};
+    L.cats.forEach((c) => { L.catById[c.id] = c; });
+    L.crewCats = L.cats.filter((c) => c.type === 'Labour' && c.id !== 'debris');
+    this._lists = L;
+    return L;
   }
 
   // dates
@@ -803,73 +1010,106 @@ class Component extends DCLogic {
     const diff = this.diffDays(s, this.today());
     if (diff === 0) return 'Today';
     if (diff === 1) return 'Yesterday';
+    if (diff === -1) return 'Tomorrow';
     return this.parse(s).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' });
   }
+  stamp(at) { return new Date(at).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }); }
+  now() { return new Date().toISOString(); }
   money(n) { const r = Math.round(Math.abs(n)).toLocaleString('en-IN'); return (n < 0 ? '−₹' : '₹') + r; }
 
-  blankDraft(keepDate) {
-    return { amount: '', cat: null, other: '', matType: null, matNote: '', room: null,
-      date: keepDate ? keepDate.date : this.today(), dateMode: keepDate ? keepDate.dateMode : 'today',
-      payee: '', mode: null, note: '', editingId: null, fromReview: false };
+  blankDraft(keep) {
+    return { amount: '', cat: null, other: '', matType: null, matNote: '', room: null, crew: undefined,
+      date: keep ? keep.date : this.today(), dateMode: keep ? keep.dateMode : 'today',
+      paidBy: null, payee: '', mode: null, note: '', editingId: null, fromReview: false };
   }
   blankRet() { return { step: 1, of: null, amount: '', what: '', date: this.today(), dateMode: 'today', filter: 'mat', done: false, lastText: '', lastNet: '', lastOf: null }; }
+  blankTask() { return { title: '', who: null, room: null, due: '' }; }
 
   seed() {
     const rows = [
-      [0, 2400, 'mazdur', null, '2 labourers', 'Whole house', 'Cash', 'Mom'],
-      [0, 18500, 'material', 'Tiles', 'Anti-skid floor tiles, 14 boxes', 'Bathroom', 'UPI', 'Garvit'],
-      [1, 3500, 'plumber', null, '', 'Bathroom', 'UPI', 'Garvit'],
-      [1, 1200, 'transport', null, 'Tempo for tiles', 'Whole house', 'Cash', 'Mom'],
-      [2, 45000, 'designer', null, 'Design fee, 2nd instalment', 'Whole house', 'Bank', 'Garvit'],
-      [3, 9800, 'material', 'Lights', 'Profile lights and drivers', 'Living room', 'UPI', 'Garvit', 'lights'],
-      [3, 6000, 'electrician', null, '', 'Living room', 'UPI', 'Garvit'],
-      [4, 12500, 'material', 'Paint', 'Emulsion, 20 L', 'Living room', 'UPI', 'Garvit'],
-      [5, 8000, 'painter', null, 'Advance', 'Whole house', 'Cash', 'Mom'],
-      [6, 22000, 'carpenter', null, 'Kitchen shutters', 'Kitchen', 'Cash', 'Garvit'],
-      [6, 31000, 'material', 'Plywood', 'BWP ply, 8 sheets', 'Kitchen', 'Bank', 'Garvit'],
-      [7, 400, 'material', 'Sanitaryware', 'Smaller floor drain', 'Bathroom', 'Cash', 'Garvit'],
-      [8, 5500, 'mistry', null, '', 'Bathroom', 'Cash', 'Mom'],
-      [9, 650, 'travel', null, 'Auto to hardware market', 'Whole house', 'Cash', 'Garvit'],
-      [10, 14200, 'material', 'Sanitaryware', 'WC, basin and floor drain', 'Bathroom', 'Card', 'Garvit', 'sanit'],
-      [12, 4000, 'mistry', null, '', 'Balcony', 'Cash', 'Mom'],
-      [13, 7400, 'material', 'Tiles', 'Wall cladding', 'Balcony', 'UPI', 'Garvit'],
-      [15, 3000, 'electrician', null, '', "Mother's room", 'UPI', 'Garvit'],
-      [16, 6200, 'material', 'Wires & switches', 'Modular switches', "Mother's room", 'UPI', 'Garvit'],
-      [18, 5000, 'painter', null, '', 'Study room', 'Cash', 'Garvit'],
-      [24, 28000, 'furniture', null, 'Study table and shelf', 'Study room', 'Card', 'Garvit'],
-      [30, 30000, 'designer', null, 'Design fee, 1st instalment', 'Whole house', 'Bank', 'Garvit'],
-      [35, 16000, 'material', 'Cement & sand', 'Waterproofing', 'Bathroom', 'Cash', 'Garvit'],
-      [40, 9000, 'debris', null, 'Demolition debris removal', 'Whole house', 'Cash', 'Mom']
+      [0, 2400, 'mazdur', null, '2 labourers', 'Whole house', 'Cash', 'Rekha', 'Rekha'],
+      [0, 18500, 'material', 'Tiles', 'Anti-skid floor tiles, 14 boxes', 'Bathroom', 'UPI', 'Garvit', 'Garvit'],
+      [1, 4000, 'painter', null, 'Weekly payment', 'Whole house', 'Cash', 'Manmohan', 'Manmohan', null, 1],
+      [1, 3500, 'plumber', null, '', 'Bathroom', 'UPI', 'Garvit', 'Garvit'],
+      [1, 1200, 'transport', null, 'Tempo for tiles', 'Whole house', 'Cash', 'Rekha', 'Rekha'],
+      [2, 45000, 'designer', null, 'Design fee, 2nd instalment', 'Whole house', 'Bank', 'Garvit', 'Garvit'],
+      [3, 9800, 'material', 'Lights', 'Profile lights and drivers', 'Living room', 'UPI', 'Garvit', 'Garvit', 'lights'],
+      [3, 6000, 'electrician', null, '', 'Living room', 'UPI', 'Manmohan', 'Garvit'],
+      [4, 12500, 'material', 'Paint', 'Emulsion, 20 L', 'Living room', 'UPI', 'Garvit', 'Garvit'],
+      [8, 8000, 'painter', null, 'Advance', 'Whole house', 'Cash', 'Rekha', 'Rekha', null, 1],
+      [6, 22000, 'carpenter', null, 'Kitchen shutters', 'Kitchen', 'Cash', 'Manmohan', 'Garvit'],
+      [6, 31000, 'material', 'Plywood', 'BWP ply, 8 sheets', 'Kitchen', 'Bank', 'Garvit', 'Garvit'],
+      [7, 400, 'material', 'Sanitaryware', 'Smaller floor drain', 'Bathroom', 'Cash', 'Garvit', 'Garvit'],
+      [8, 5500, 'mistry', null, '', 'Bathroom', 'Cash', 'Rekha', 'Rekha'],
+      [9, 650, 'travel', null, 'Auto to hardware market', 'Whole house', 'Cash', 'Garvit', 'Garvit'],
+      [10, 14200, 'material', 'Sanitaryware', 'WC, basin and floor drain', 'Bathroom', 'Card', 'Garvit', 'Garvit', 'sanit'],
+      [12, 4000, 'mistry', null, '', 'Balcony', 'Cash', 'Rekha', 'Rekha'],
+      [13, 7400, 'material', 'Tiles', 'Wall cladding', 'Balcony', 'UPI', 'Garvit', 'Garvit'],
+      [15, 3000, 'electrician', null, '', "Mother's room", 'UPI', 'Garvit', 'Garvit'],
+      [16, 6200, 'material', 'Wires & switches', 'Modular switches', "Mother's room", 'UPI', 'Manmohan', 'Manmohan'],
+      [18, 5000, 'painter', null, 'Study room touch-up', 'Study room', 'Cash', 'Garvit', 'Garvit'],
+      [24, 28000, 'furniture', null, 'Study table and shelf', 'Study room', 'Card', 'Garvit', 'Garvit'],
+      [30, 30000, 'designer', null, 'Design fee, 1st instalment', 'Whole house', 'Bank', 'Manmohan', 'Garvit'],
+      [35, 16000, 'material', 'Cement & sand', 'Waterproofing', 'Bathroom', 'Cash', 'Garvit', 'Garvit'],
+      [40, 9000, 'debris', null, 'Demolition debris removal', 'Whole house', 'Cash', 'Manmohan', 'Rekha']
     ];
-    const out = rows.map((r) => ({
-      id: this.nextId++, kind: 'expense', date: this.daysAgo(r[0]), amount: r[1], cat: r[2], other: '',
-      matType: r[3], matNote: r[4], room: r[5], payee: '', mode: r[6], note: '', by: r[7],
-      returnOf: null, sample: true, key: r[8] || null
-    }));
+    const out = rows.map((r) => {
+      const date = this.daysAgo(r[0]);
+      return {
+        id: this.nextId++, kind: 'expense', date, amount: r[1], cat: r[2], other: '', matType: r[3], matNote: r[4],
+        room: r[5], mode: r[6], paidBy: r[7], by: r[8], payee: '', note: '', returnOf: null, crewId: r[10] || null,
+        sample: true, key: r[9] || null, history: [{ what: 'Added', by: r[8], at: date + 'T11:15:00' }]
+      };
+    });
     const sanit = out.find((e) => e.key === 'sanit');
-    out.push({ id: this.nextId++, kind: 'return', date: this.daysAgo(7), amount: -1400, cat: sanit.cat, other: '',
-      matType: sanit.matType, matNote: 'Floor drain (too big)', room: sanit.room, payee: '', mode: 'Cash', note: '',
-      by: 'Garvit', returnOf: sanit.id, sample: true, key: null });
+    const rd = this.daysAgo(7);
+    out.push({ id: this.nextId++, kind: 'return', date: rd, amount: -1400, cat: sanit.cat, other: '', matType: sanit.matType,
+      matNote: 'Floor drain (too big)', room: sanit.room, mode: 'Cash', paidBy: null, by: 'Garvit', payee: '', note: '',
+      returnOf: sanit.id, crewId: null, sample: true, key: null, history: [{ what: 'Added', by: 'Garvit', at: rd + 'T17:40:00' }] });
     return out;
   }
 
   seedCrews() {
-    return [{ id: 1, trade: 'painter', name: "Painters, Ramesh's team", people: '2', rate: '800',
-      start: this.daysAgo(13), end: this.addDays(this.today(), 4), holidays: [this.daysAgo(7), this.daysAgo(3)] }];
+    return [{ id: 1, trade: 'painter', name: "Ramesh's team", people: '2', rate: '800',
+      start: this.daysAgo(13), end: null, holidays: [this.daysAgo(7), this.daysAgo(3)] }];
+  }
+
+  seedTasks() {
+    const t = (id, title, who, room, due, done, doneBy, doneAgo) => ({ id, title, who, room, due: due === null ? '' : this.addDays(this.today(), due),
+      done, doneBy: doneBy || null, doneAt: done ? this.daysAgo(doneAgo) : null, by: 'Garvit', sample: true });
+    return [
+      t(101, 'Leak test the bathroom floor (48 hours of water)', 'Plumber', 'Bathroom', -1, false),
+      t(102, 'Finalise kitchen countertop design', 'Designer', 'Kitchen', 3, false),
+      t(103, 'Send balcony railing options', 'Designer', 'Balcony', null, false),
+      t(104, 'Fix loose switchboard', 'Electrician', "Mother's room", 2, false),
+      t(105, 'Second coat in the living room', 'Painter', 'Living room', 5, false),
+      t(106, 'Choose curtain fabric', 'Rekha', 'Main bedroom', null, false),
+      t(107, 'Ask society about using the lift for debris', 'Manmohan', 'Whole house', null, false),
+      t(108, 'Buy a smaller floor drain', 'Garvit', 'Bathroom', null, true, 'Garvit', 7),
+      t(109, 'Confirm tile quantity for balcony', 'Mistry', 'Balcony', null, true, 'Rekha', 12),
+      t(110, 'Get paint shade samples', 'Painter', 'Living room', null, true, 'Manmohan', 5)
+    ];
   }
 
   preset(start, expenses) {
-    const d = (patch) => Object.assign(this.blankDraft(), patch);
+    const d = (p) => Object.assign(this.blankDraft(), p);
     const find = (k) => (expenses.find((e) => e.key === k) || {}).id || null;
     const mat = { amount: '400', cat: 'material', matType: 'Sanitaryware', matNote: 'Smaller floor drain' };
+    const add = (p) => Object.assign({ screen: 'add' }, p);
     switch (start) {
-      case 'add-what': return { step: 2, draft: d({ amount: '400' }) };
-      case 'add-material': return { step: 2, sub: true, draft: d({ amount: '400', cat: 'material' }) };
-      case 'add-other': return { step: 2, sub: true, draft: d({ amount: '1500', cat: 'other', other: 'Pest control' }) };
-      case 'add-where': return { step: 3, draft: d(mat) };
-      case 'add-when': return { step: 4, draft: d(Object.assign({ room: 'Bathroom' }, mat)) };
-      case 'add-review': return { step: 5, draft: d(Object.assign({ room: 'Bathroom', payee: 'Gupta Sanitary', mode: 'Cash' }, mat)) };
-      case 'add-done': return { step: 5, done: true, lastSaved: '₹400 · Sanitaryware · Bathroom' };
+      case 'who': return { screen: 'who' };
+      case 'tasks': return { screen: 'tasks' };
+      case 'tasks-add': return { screen: 'tasks', taskDraft: { title: 'Order the kitchen sink', who: 'Garvit', room: 'Kitchen', due: '' } };
+      case 'add-amount': return add({});
+      case 'add-what': return add({ step: 2, draft: d({ amount: '400' }) });
+      case 'add-material': return add({ step: 2, sub: true, draft: d({ amount: '400', cat: 'material' }) });
+      case 'add-other': return add({ step: 2, sub: true, draft: d({ amount: '1500', cat: 'other', other: 'Pest control' }) });
+      case 'add-crew': return add({ step: 2, sub: true, draft: d({ amount: '3000', cat: 'painter' }),
+        crews: this.seedCrews().concat([{ id: 2, trade: 'painter', name: 'Sonu (touch-ups)', people: '1', rate: '700', start: this.daysAgo(4), end: null, holidays: [] }]) });
+      case 'add-where': return add({ step: 3, draft: d(mat) });
+      case 'add-when': return add({ step: 4, draft: d(Object.assign({ room: 'Bathroom' }, mat)) });
+      case 'add-review': return add({ step: 5, draft: d(Object.assign({ room: 'Bathroom', payee: 'Gupta Sanitary', mode: 'Cash', paidBy: 'Garvit' }, mat)) });
+      case 'add-done': return add({ step: 5, done: true, lastSaved: '₹4,000 · Painter · Whole house', lastLinked: "Counted in Ramesh's team's payments" });
       case 'return-pick': return { screen: 'return' };
       case 'return-amount': return { screen: 'return', ret: Object.assign(this.blankRet(), { step: 2, of: find('lights'), amount: '1200', what: 'One extra LED driver' }) };
       case 'return-done': return { screen: 'return', ret: Object.assign(this.blankRet(), { step: 2, done: true, of: find('sanit'), lastOf: find('sanit'), lastText: '−₹1,400 · Floor drain (too big)', lastNet: 'The sanitaryware bill now counts as ₹12,800.' }) };
@@ -878,12 +1118,15 @@ class Component extends DCLogic {
       case 'insights': return { screen: 'insights' };
       case 'room': return { screen: 'room', room: 'Bathroom' };
       case 'workers': return { screen: 'workers' };
+      case 'workers-finish': return { screen: 'workers', finishing: { date: this.today() } };
+      case 'workers-new': return { screen: 'workers', newCrew: { trade: 'mazdur', name: 'Daily mazdur', people: '3', rate: '600', start: this.today() } };
       default: return {};
     }
   }
 
   setDraft(p) { this.setState((st) => ({ draft: Object.assign({}, st.draft, p) })); }
   setRet(p) { this.setState((st) => ({ ret: Object.assign({}, st.ret, p) })); }
+  setTask(p) { this.setState((st) => ({ taskDraft: Object.assign({}, st.taskDraft, p) })); }
   flash(msg) {
     clearTimeout(this.toastTimer);
     this.toastTimer = setTimeout(() => this.setState({ toast: null }), 2400);
@@ -896,11 +1139,30 @@ class Component extends DCLogic {
     return s;
   }
 
+  // crews active for a category on a date
+  crewsFor(cat, date) {
+    return this.state.crews.filter((c) => c.trade === cat && c.start <= date && (!c.end || c.end >= date));
+  }
+  resolveCrew(d) {
+    if (d.crew === 'none') return null;
+    if (typeof d.crew === 'number') return d.crew;
+    const m = this.crewsFor(d.cat, d.date);
+    return m.length === 1 ? m[0].id : null;
+  }
+  subKind(d) {
+    if (d.cat === 'material') return 'mat';
+    if (d.cat === 'other') return 'other';
+    return this.crewsFor(d.cat, d.date).length > 0 ? 'crew' : null;
+  }
+
   stepValid() {
     const s = this.state, d = s.draft;
     if (s.step === 1) return parseFloat(d.amount) > 0;
     if (s.step === 2 && !s.sub) return !!d.cat;
-    if (s.step === 2 && s.sub) return d.cat === 'material' ? !!d.matType : d.other.trim().length > 0;
+    if (s.step === 2 && s.sub) {
+      const k = this.subKind(d);
+      return k === 'mat' ? !!d.matType : k === 'other' ? d.other.trim().length > 0 : k === 'crew' ? d.crew !== undefined : true;
+    }
     if (s.step === 3) return !!d.room;
     return true;
   }
@@ -908,7 +1170,10 @@ class Component extends DCLogic {
   next() {
     const s = this.state, d = s.draft;
     if (!this.stepValid()) return;
-    if (s.step === 2 && !s.sub && (d.cat === 'material' || d.cat === 'other')) { this.setState({ sub: true }); return; }
+    if (s.step === 2 && !s.sub) {
+      const k = this.subKind(d);
+      if (k === 'mat' || k === 'other' || (k === 'crew' && this.crewsFor(d.cat, d.date).length > 1)) { this.setState({ sub: true }); return; }
+    }
     if (s.step === 5) { this.save(); return; }
     if (d.fromReview && d.room && d.cat) { this.setState({ step: 5, sub: false }); return; }
     this.setState({ step: s.step + 1, sub: false });
@@ -923,40 +1188,43 @@ class Component extends DCLogic {
   save() {
     const s = this.state, d = s.draft, C = this.lists().catById;
     const amount = parseFloat(d.amount);
+    const crewId = this.resolveCrew(d);
+    const crew = s.crews.find((c) => c.id === crewId);
+    const stamp = { what: d.editingId ? 'Edited' : 'Added', by: s.me, at: this.now() };
     const entry = {
       id: d.editingId || this.nextId++, kind: 'expense', date: d.date, amount, cat: d.cat,
       other: d.cat === 'other' ? d.other.trim() : '', matType: d.cat === 'material' ? d.matType : null,
-      matNote: d.cat === 'material' ? d.matNote.trim() : '', room: d.room, payee: d.payee.trim(), mode: d.mode,
-      note: d.note.trim(), by: this.props.user || 'Garvit', returnOf: null, sample: false, key: null
+      matNote: d.cat === 'material' ? d.matNote.trim() : '', room: d.room, paidBy: d.paidBy || s.me,
+      payee: d.payee.trim(), mode: d.mode, note: d.note.trim(), by: s.me, returnOf: null, crewId, sample: false, key: null, history: [stamp]
     };
     const what = d.cat === 'material' ? d.matType : d.cat === 'other' ? d.other.trim() : C[d.cat].label;
     this.setState((st) => {
       let expenses;
       if (d.editingId) {
-        expenses = st.expenses.map((e) => (e.id === d.editingId ? Object.assign({}, entry, { by: e.by, sample: e.sample }) : e));
-        expenses = expenses.map((e) => (e.returnOf === d.editingId ? Object.assign({}, e, { cat: entry.cat, matType: entry.matType, room: entry.room }) : e));
+        expenses = st.expenses.map((e) => (e.id === d.editingId ? Object.assign({}, entry, { by: e.by, sample: e.sample, history: e.history.concat([stamp]) }) : e));
+        expenses = expenses.map((e) => (e.returnOf === d.editingId ? Object.assign({}, e, { cat: entry.cat, matType: entry.matType, room: entry.room, crewId: entry.crewId }) : e));
       } else {
         expenses = [entry].concat(st.expenses);
       }
-      return { expenses, done: true, lastSaved: this.money(amount) + ' · ' + what + ' · ' + d.room };
+      return { expenses, done: true, lastSaved: this.money(amount) + ' · ' + what + ' · ' + d.room, lastLinked: crew ? 'Counted in ' + crew.name + "'s payments" : '' };
     });
   }
 
-  addAnother(patch) {
+  addAnother() {
     const d = this.state.draft;
-    this.setState({ screen: 'add', step: 1, sub: false, done: false, draft: Object.assign(this.blankDraft({ date: d.date, dateMode: d.dateMode }), patch || {}) });
+    this.setState({ screen: 'add', step: 1, sub: false, done: false, draft: this.blankDraft({ date: d.date, dateMode: d.dateMode }) });
   }
 
   netOf(id) { return this.state.expenses.filter((e) => e.id === id || e.returnOf === id).reduce((a, e) => a + e.amount, 0); }
 
   saveReturn() {
-    const r = this.state.ret;
-    const orig = this.state.expenses.find((e) => e.id === r.of);
+    const s = this.state, r = s.ret;
+    const orig = s.expenses.find((e) => e.id === r.of);
     const amt = parseFloat(r.amount);
     if (!orig || !(amt > 0) || amt > this.netOf(orig.id) || !r.what.trim()) return;
     const ret = { id: this.nextId++, kind: 'return', date: r.date, amount: -amt, cat: orig.cat, other: orig.other,
-      matType: orig.matType, matNote: r.what.trim(), room: orig.room, payee: orig.payee, mode: null, note: '',
-      by: this.props.user || 'Garvit', returnOf: orig.id, sample: false, key: null };
+      matType: orig.matType, matNote: r.what.trim(), room: orig.room, paidBy: null, payee: orig.payee, mode: null, note: '',
+      by: s.me, returnOf: orig.id, crewId: orig.crewId, sample: false, key: null, history: [{ what: 'Added', by: s.me, at: this.now() }] };
     const net = this.netOf(orig.id) - amt;
     this.setState((st) => ({
       expenses: [ret].concat(st.expenses),
@@ -980,11 +1248,12 @@ class Component extends DCLogic {
 
   renderVals() {
     const s = this.state, L = this.lists(), C = L.catById, TC = L.typeColors, today = this.today();
-    const me = this.props.user || 'Garvit';
+    const me = s.me;
     const on = { bg: '#1F1C17', fg: '#FFFFFF', bd: '#1F1C17' }, off = { bg: '#FFFFFF', fg: '#1F1C17', bd: '#DDD5C8' };
     const chip = (sel) => Object.assign({}, sel ? on : off);
     const all = s.expenses;
     const byId = {}; all.forEach((e) => { byId[e.id] = e; });
+    const crewById = {}; s.crews.forEach((c) => { crewById[c.id] = c; });
     const returnsOf = (id) => all.filter((x) => x.returnOf === id);
     const netOf = (id) => all.filter((x) => x.id === id || x.returnOf === id).reduce((a, x) => a + x.amount, 0);
     const typeOf = (e) => C[e.cat].type;
@@ -997,8 +1266,7 @@ class Component extends DCLogic {
       const isRet = e.kind === 'return';
       const rc = isRet ? 0 : returnsOf(e.id).length;
       const where = ctx === 'room' ? this.dayLabel(e.date) : ctx === 'date' ? e.room : e.room + ', ' + this.short(e.date);
-      const parts = isRet ? ['from ' + nameOf(e) + ' bill', where] : [where, e.matNote, e.payee];
-      if (e.by && e.by !== me) parts.push('by ' + e.by);
+      const parts = isRet ? ['from ' + nameOf(e) + ' bill', where] : [where, e.matNote, e.crewId && crewById[e.crewId] ? crewById[e.crewId].name : '', e.paidBy ? 'paid by ' + e.paidBy : ''];
       return {
         title: titleOf(e), sub: parts.filter(Boolean).join(' · '),
         amountText: this.money(e.amount), amountColor: isRet ? '#2F5A2B' : '#1F1C17',
@@ -1007,6 +1275,73 @@ class Component extends DCLogic {
         border: i === 0 ? '0' : '1px solid #EFE9DF',
         open: () => this.setState({ screen: 'entry', entryId: e.id, entryBack: back, confirmDel: false })
       };
+    };
+
+    // ---------- who ----------
+    const people = L.family.map((p) => ({
+      name: p, initial: p[0], bd: p === s.lastUser ? '#1F1C17' : '#DDD5C8',
+      hint: p === s.lastUser ? 'Used this app last' : '',
+      pick: () => this.setState({ me: p, lastUser: p, screen: 'tasks' })
+    }));
+
+    // ---------- tasks ----------
+    const td = s.taskDraft;
+    const dueText = (t) => {
+      if (!t.due) return '';
+      const diff = this.diffDays(today, t.due);
+      if (diff < 0) return 'was due ' + this.short(t.due);
+      if (diff === 0) return 'due today';
+      return 'due ' + this.dayLabel(t.due);
+    };
+    const taskRow = (t, i, groupKey) => {
+      const overdue = !t.done && t.due && t.due < today;
+      const bits = t.done
+        ? ['Done by ' + (t.doneBy || '?') + ', ' + this.short(t.doneAt), t.room]
+        : [groupKey === 'who' ? t.room : t.who, dueText(t)];
+      return {
+        title: t.title, sub: bits.filter(Boolean).join(' · '), overdue: !!overdue,
+        pressed: String(!!t.done), aria: (t.done ? 'Mark not done: ' : 'Mark done: ') + t.title,
+        boxBg: t.done ? '#1F1C17' : '#FFFFFF', tick: t.done ? '#FFFFFF' : 'transparent',
+        deco: t.done ? 'line-through' : 'none', color: t.done ? '#5C564C' : '#1F1C17',
+        border: i === 0 ? '0' : '1px solid #EFE9DF',
+        toggle: () => {
+          this.setState((st) => ({ tasks: st.tasks.map((x) => (x.id === t.id ? Object.assign({}, x, { done: !t.done, doneBy: t.done ? null : st.me, doneAt: t.done ? null : today }) : x)) }));
+          if (!t.done) this.flash('Done, ticked by ' + me);
+        }
+      };
+    };
+    const openT = s.tasks.filter((t) => !t.done);
+    const doneT = s.tasks.filter((t) => t.done).sort((a, b) => (a.doneAt < b.doneAt ? 1 : -1));
+    const tkey = (t) => (s.taskGroup === 'who' ? t.who : t.room || 'No room');
+    const tmap = new Map();
+    openT.slice().sort((a, b) => ((a.due || '9999') < (b.due || '9999') ? -1 : 1)).forEach((t) => { const k = tkey(t); if (!tmap.has(k)) tmap.set(k, []); tmap.get(k).push(t); });
+    const tgroups = Array.from(tmap, ([k, items]) => ({ k, items, overdue: items.some((t) => t.due && t.due < today) }))
+      .sort((a, b) => (b.overdue - a.overdue) || (b.items.length - a.items.length))
+      .map((g) => ({ title: s.taskGroup === 'who' ? 'Waiting on ' + g.k : g.k, count: g.items.length + ' open', items: g.items.map((t, i) => taskRow(t, i, s.taskGroup)) }));
+    const nOverdue = openT.filter((t) => t.due && t.due < today).length;
+    const canAddTask = td.title.trim().length > 0 && !!td.who;
+    const tk = {
+      summary: openT.length + ' open' + (nOverdue ? ' · ' + nOverdue + ' overdue' : '') + ' · ' + doneT.length + ' done',
+      draft: td, typing: td.title.trim().length > 0,
+      onTitle: (e) => this.setTask({ title: e.target.value }),
+      onDue: (e) => this.setTask({ due: e.target.value }),
+      whoOpts: L.taskWho.map((p) => Object.assign(chip(td.who === p), { label: p, pressed: String(td.who === p), pick: () => this.setTask({ who: p }) })),
+      roomOpts: L.rooms.map((r) => Object.assign(chip(td.room === r), { label: r, pressed: String(td.room === r), pick: () => this.setTask({ room: td.room === r ? null : r }) })),
+      cancel: () => this.setState({ taskDraft: this.blankTask() }),
+      cantAdd: !canAddTask, addBg: canAddTask ? '#1F1C17' : '#E4DDD1', addFg: canAddTask ? '#FFFFFF' : '#5C564C',
+      add: () => {
+        if (!canAddTask) return;
+        this.setState((st) => ({ tasks: [{ id: Date.now(), title: td.title.trim(), who: td.who, room: td.room, due: td.due, done: false, doneBy: null, doneAt: null, by: st.me }].concat(st.tasks), taskDraft: this.blankTask() }));
+        this.flash('Task added');
+      },
+      groupOpts: [['who', 'By person'], ['room', 'By room']].map(([id, label]) => ({
+        label, pressed: String(s.taskGroup === id), bg: s.taskGroup === id ? '#FFFFFF' : 'transparent', fg: s.taskGroup === id ? '#1F1C17' : '#5C564C',
+        pick: () => this.setState({ taskGroup: id }) })),
+      groups: tgroups, noOpen: openT.length === 0,
+      hasDone: doneT.length > 0, showDone: s.showDone && doneT.length > 0,
+      doneLabel: (s.showDone ? 'Hide' : 'Show') + ' done tasks (' + doneT.length + ')', doneSign: s.showDone ? '−' : '+', doneExpanded: String(s.showDone),
+      toggleDone: () => this.setState({ showDone: !s.showDone }),
+      done: doneT.map((t, i) => taskRow(t, i, 'done'))
     };
 
     // ---------- wizard ----------
@@ -1018,6 +1353,9 @@ class Component extends DCLogic {
       if (amt >= 100000) amountHint += ' (' + (amt / 100000).toFixed(2).replace(/\.?0+$/, '') + ' lakh)';
     }
     const isAdd = s.screen === 'add';
+    const sk = d.cat ? this.subKind(d) : null;
+    const matching = d.cat ? this.crewsFor(d.cat, d.date) : [];
+    const resolved = this.resolveCrew(d);
     const catText = d.cat ? (d.cat === 'other' ? (d.other || 'Other') : C[d.cat].label) : '';
     const change = (step, sub) => () => this.setState((st) => ({ step, sub: !!sub, draft: Object.assign({}, st.draft, { fromReview: true }) }));
     const review = [
@@ -1025,37 +1363,44 @@ class Component extends DCLogic {
       { k: 'For', v: catText, change: change(2), aria: 'Change what it was for' }
     ];
     if (d.cat === 'material') review.push({ k: 'Material', v: d.matType + (d.matNote ? ' · ' + d.matNote : ''), change: change(2, true), aria: 'Change material' });
+    if (matching.length > 0) review.push({ k: 'Crew', v: resolved ? crewById[resolved].name : 'Not part of a crew', change: change(2, true), aria: 'Change crew' });
     review.push({ k: 'Room', v: d.room || '', change: change(3), aria: 'Change room' });
     review.push({ k: 'Date', v: this.dayLabel(d.date), change: change(4), aria: 'Change date' });
+    review.push({ k: 'Paid by', v: d.paidBy || me, change: change(4), aria: 'Change who paid' });
     const extra = [d.payee, d.mode, d.note].filter(Boolean).join(' · ');
     if (extra) review.push({ k: 'Details', v: extra, change: change(4), aria: 'Change details' });
     review.forEach((r, i) => { r.border = i === 0 ? '0' : '1px solid #EFE9DF'; });
-
+    const inWiz = isAdd && !s.done;
     const w = {
-      s1: isAdd && !s.done && s.step === 1,
-      s2: isAdd && !s.done && s.step === 2 && !s.sub,
-      s2mat: isAdd && !s.done && s.step === 2 && s.sub && d.cat === 'material',
-      s2other: isAdd && !s.done && s.step === 2 && s.sub && d.cat === 'other',
-      s3: isAdd && !s.done && s.step === 3,
-      s4: isAdd && !s.done && s.step === 4,
-      s5: isAdd && !s.done && s.step === 5,
+      s1: inWiz && s.step === 1,
+      s2: inWiz && s.step === 2 && !s.sub,
+      s2mat: inWiz && s.step === 2 && s.sub && sk === 'mat',
+      s2other: inWiz && s.step === 2 && s.sub && sk === 'other',
+      s2crew: inWiz && s.step === 2 && s.sub && sk === 'crew',
+      s3: inWiz && s.step === 3, s4: inWiz && s.step === 4, s5: inWiz && s.step === 5,
       done: isAdd && s.done,
       amount: d.amount, amountHint,
       onAmount: (e) => this.setDraft({ amount: this.cleanAmount(e.target.value) }),
       cats: L.cats.map((c) => Object.assign(chip(d.cat === c.id), { label: c.label, pressed: String(d.cat === c.id),
-        pick: () => this.setDraft({ cat: c.id, matType: c.id === 'material' ? d.matType : null }) })),
+        pick: () => this.setDraft({ cat: c.id, matType: c.id === 'material' ? d.matType : null, crew: c.id === d.cat ? d.crew : undefined }) })),
       mats: L.mats.map((m) => Object.assign(chip(d.matType === m), { label: m, pressed: String(d.matType === m), pick: () => this.setDraft({ matType: m }) })),
       matNote: d.matNote, onMatNote: (e) => this.setDraft({ matNote: e.target.value }),
       other: d.other, onOther: (e) => this.setDraft({ other: e.target.value }),
+      crewOpts: matching.map((c) => Object.assign(chip(d.crew === c.id), {
+        label: c.name, hint: c.people + (c.people === '1' ? ' person' : ' people') + ' · working since ' + this.short(c.start),
+        hintColor: d.crew === c.id ? '#E4DDD1' : '#5C564C', pressed: String(d.crew === c.id), pick: () => this.setDraft({ crew: c.id })
+      })).concat([Object.assign(chip(d.crew === 'none'), { label: 'Not part of a crew', hint: 'A one-off payment', hintColor: d.crew === 'none' ? '#E4DDD1' : '#5C564C',
+        pressed: String(d.crew === 'none'), pick: () => this.setDraft({ crew: 'none' }) })]),
       rooms: L.rooms.map((r) => Object.assign(chip(d.room === r), {
         label: r, pressed: String(d.room === r), hint: r === 'Whole house' ? 'Shared costs, e.g. designer' : '',
         hintColor: d.room === r ? '#E4DDD1' : '#5C564C', pick: () => this.setDraft({ room: r }) })),
       dates: this.dateOpts(d.date, d.dateMode, (p) => this.setDraft(p)),
+      paidBy: L.family.map((p) => Object.assign(chip((d.paidBy || me) === p), { label: p, pressed: String((d.paidBy || me) === p), pick: () => this.setDraft({ paidBy: p }) })),
       payee: d.payee, onPayee: (e) => this.setDraft({ payee: e.target.value }),
       modes: L.modes.map((m) => Object.assign(chip(d.mode === m), { label: m, pressed: String(d.mode === m), pick: () => this.setDraft({ mode: d.mode === m ? null : m }) })),
       note: d.note, onNote: (e) => this.setDraft({ note: e.target.value }),
       reviewTitle: d.editingId ? 'Check your changes' : 'Check and save',
-      review, lastSaved: s.lastSaved
+      review, lastSaved: s.lastSaved, hasLinked: !!s.lastLinked, lastLinked: s.lastLinked
     };
 
     // ---------- return ----------
@@ -1111,7 +1456,7 @@ class Component extends DCLogic {
 
     // ---------- entry ----------
     const ee = byId[s.entryId];
-    let ent = { title: '', hasTag: false, tag: '', tagBg: '', tagFg: '', amountText: '', amountColor: '#1F1C17', hasNet: false, netText: '', fields: [],
+    let ent = { title: '', hasTag: false, tag: '', tagBg: '', tagFg: '', amountText: '', amountColor: '#1F1C17', hasNet: false, netText: '', fields: [], history: [],
       hasReturns: false, returns: [], isReturn: false, canReturn: false, cantEdit: true, editOpacity: 0.4, delLabel: 'Delete', delBg: 'transparent', delFg: '#9E2A1E', confirming: false, confirmText: '' };
     if (ee) {
       const isRet = ee.kind === 'return';
@@ -1121,7 +1466,8 @@ class Component extends DCLogic {
         ['For', ee.cat === 'other' ? (ee.other || 'Other') : C[ee.cat].label],
         ['Material', ee.cat === 'material' ? ee.matType : ''],
         [isRet ? 'Item returned' : 'Details', ee.matNote],
-        ['Room', ee.room], ['Paid to', ee.payee], ['Paid via', ee.mode], ['Note', ee.note], ['Added by', ee.by]
+        ['Crew', ee.crewId && crewById[ee.crewId] ? crewById[ee.crewId].name : ''],
+        ['Room', ee.room], ['Paid by', ee.paidBy], ['Paid to', ee.payee], ['Paid via', ee.mode], ['Note', ee.note]
       ].filter((x) => x[1]).map((x, i) => ({ k: x[0], v: x[1], border: i === 0 ? '0' : '1px solid #EFE9DF' }));
       const netE = isRet ? 0 : netOf(ee.id);
       ent = {
@@ -1130,8 +1476,10 @@ class Component extends DCLogic {
         tagBg: isRet ? '#E7EFE6' : '#EAE3D8', tagFg: isRet ? '#2F5A2B' : '#1F1C17',
         amountText: this.money(ee.amount), amountColor: isRet ? '#2F5A2B' : '#1F1C17',
         hasNet: rets.length > 0, netText: 'Counts as ' + this.money(netE) + ' after returns',
-        fields: f, hasReturns: rets.length > 0,
-        returns: rets.map((x, i) => ({ title: x.matNote || 'Returned item', sub: this.short(x.date) + (x.by !== me ? ' · by ' + x.by : ''), amountText: this.money(x.amount), border: i === 0 ? '0' : '1px solid #EFE9DF' })),
+        fields: f,
+        history: ee.history.map((h, i) => ({ what: h.what, by: h.by, when: this.stamp(h.at), border: i === 0 ? '0' : '1px solid #EFE9DF' })),
+        hasReturns: rets.length > 0,
+        returns: rets.map((x, i) => ({ title: x.matNote || 'Returned item', sub: this.short(x.date) + ' · added by ' + x.by, amountText: this.money(x.amount), border: i === 0 ? '0' : '1px solid #EFE9DF' })),
         isReturn: isRet, openOrig: () => this.setState({ entryId: ee.returnOf, confirmDel: false }),
         canReturn: !isRet && netE > 0,
         recordReturn: () => this.setState({ screen: 'return', ret: Object.assign(this.blankRet(), { step: 2, of: ee.id }) }),
@@ -1140,20 +1488,20 @@ class Component extends DCLogic {
           if (isRet) return;
           this.setState({ screen: 'add', step: 5, sub: false, done: false, draft: {
             amount: String(ee.amount), cat: ee.cat, other: ee.other || '', matType: ee.matType, matNote: ee.matNote || '', room: ee.room,
-            date: ee.date, dateMode: ee.date === today ? 'today' : ee.date === this.daysAgo(1) ? 'yesterday' : 'pick',
-            payee: ee.payee || '', mode: ee.mode, note: ee.note || '', editingId: ee.id, fromReview: true } });
+            crew: ee.crewId || 'none', date: ee.date, dateMode: ee.date === today ? 'today' : ee.date === this.daysAgo(1) ? 'yesterday' : 'pick',
+            paidBy: ee.paidBy, payee: ee.payee || '', mode: ee.mode, note: ee.note || '', editingId: ee.id, fromReview: true } });
         },
         confirming: s.confirmDel,
-        confirmText: rets.length ? 'This also removes ' + rets.length + (rets.length === 1 ? ' return' : ' returns') + ' linked to it.' : 'This cannot be undone.',
+        confirmText: rets.length ? 'This also removes ' + rets.length + (rets.length === 1 ? ' return' : ' returns') + ' linked to it.' : 'The deletion is recorded with your name.',
         delLabel: s.confirmDel ? 'Tap again to delete' : 'Delete',
         delBg: s.confirmDel ? '#9E2A1E' : 'transparent', delFg: s.confirmDel ? '#FFFFFF' : '#9E2A1E',
         del: () => {
           if (!s.confirmDel) { this.setState({ confirmDel: true }); return; }
           this.setState((st) => {
             const rest = st.expenses.filter((x) => x.id !== ee.id && x.returnOf !== ee.id);
-            return { expenses: rest, hasSample: rest.some((x) => x.sample), screen: st.entryBack === 'room' ? 'room' : 'list', entryId: null, confirmDel: false };
+            return { expenses: rest, hasSample: rest.some((x) => x.sample), screen: st.entryBack, entryId: null, confirmDel: false };
           });
-          this.flash('Deleted');
+          this.flash('Deleted by ' + me);
         }
       };
     }
@@ -1166,11 +1514,11 @@ class Component extends DCLogic {
       const keys = L.types.filter((k) => t[k] > 0);
       return {
         segs: keys.map((k) => ({ grow: t[k], color: TC[k] })),
-        rows: keys.sort((a, b) => t[b] - t[a]).map((k) => ({ name: k, color: TC[k], amountText: this.money(t[k]), pctText: pct(t[k], tot) + '%' }))
+        rows: keys.slice().sort((a, b) => t[b] - t[a]).map((k) => ({ name: k, color: TC[k], amountText: this.money(t[k]), pctText: pct(t[k], tot) + '%' }))
       };
     };
-    const roomAgg = L.rooms.map((rn) => { const es = all.filter((e) => e.room === rn); return { name: rn, es, total: sumOf(es) }; });
     const SHARED = 'Whole house';
+    const roomAgg = L.rooms.map((rn) => { const es = all.filter((e) => e.room === rn); return { name: rn, es, total: sumOf(es) }; });
     const active = roomAgg.filter((x) => x.total > 0 && x.name !== SHARED).sort((a, b) => b.total - a.total);
     const sharedAgg = roomAgg.find((x) => x.name === SHARED);
     const maxR = Math.max(1, active.length ? active[0].total : 0, sharedAgg.total);
@@ -1187,15 +1535,15 @@ class Component extends DCLogic {
     all.forEach((e) => { const k = wkStart(e.date); if (k in wsum) wsum[k] += e.amount; });
     const wmax = Math.max(1, ...weeks.map((x) => wsum[x]));
     const selW = s.week && s.week in wsum ? s.week : curW;
-    const b = parseFloat(s.budget);
-    const hasBudget = b > 0;
+    const bdg = parseFloat(s.budget);
+    const hasBudget = bdg > 0;
     const returned = -sumOf(all.filter((e) => e.kind === 'return'));
     const ins = {
       totalText: this.money(net),
       countText: nExp + ' expenses' + (nRet ? ', ' + nRet + (nRet === 1 ? ' return' : ' returns') : ''),
-      hasBudget, budgetPct: hasBudget ? Math.min(100, (net / b) * 100) : 0,
-      budgetUsedText: hasBudget ? pct(net, b) + '% of ' + this.money(b) + ' used' : '',
-      budgetLeftText: hasBudget ? (b - net >= 0 ? this.money(b - net) + ' left' : this.money(net - b) + ' over') : '',
+      hasBudget, budgetPct: hasBudget ? Math.min(100, (net / bdg) * 100) : 0,
+      budgetUsedText: hasBudget ? pct(net, bdg) + '% of ' + this.money(bdg) + ' used' : '',
+      budgetLeftText: hasBudget ? (bdg - net >= 0 ? this.money(bdg - net) + ' left' : this.money(net - bdg) + ' over') : '',
       weekTotal: this.money(wsum[curW]), returnedText: this.money(returned),
       rooms: active.map(roomBar),
       topLine: active.length ? active[0].name + ' has taken the most of any room: ' + this.money(active[0].total) + '.' : 'No room-specific spending yet.',
@@ -1217,7 +1565,7 @@ class Component extends DCLogic {
     const rank = active.findIndex((x) => x.name === roomName);
     const catMap = new Map();
     ra.es.forEach((e) => { const k = C[e.cat].label; catMap.set(k, { sum: ((catMap.get(k) || {}).sum || 0) + e.amount, type: C[e.cat].type }); });
-    const catRows = Array.from(catMap, ([name, v]) => ({ name, sum: v.sum, type: v.type })).filter((x) => x.sum > 0).sort((a, b2) => b2.sum - a.sum);
+    const catRows = Array.from(catMap, ([name, v]) => ({ name, sum: v.sum, type: v.type })).filter((x) => x.sum > 0).sort((a, b) => b.sum - a.sum);
     const catMax = catRows.length ? catRows[0].sum : 1;
     const matMap = new Map();
     ra.es.filter((e) => e.cat === 'material').forEach((e) => {
@@ -1235,14 +1583,15 @@ class Component extends DCLogic {
       cats: catRows.map((x) => ({ name: x.name, amountText: this.money(x.sum), share: ' · ' + pct(x.sum, ra.total) + '%', width: (x.sum / catMax) * 100, color: TC[x.type] })),
       mats: Array.from(matMap, ([name, m]) => ({ name, sum: m.sum, amountText: this.money(m.sum),
         notes: m.notes.join('; ') + (m.returns ? ' · ' + m.returns + (m.returns === 1 ? ' return' : ' returns') + ' taken off' : '') }))
-        .sort((a, b2) => b2.sum - a.sum),
-      rows: ra.es.slice().sort((a, b2) => (a.date < b2.date ? 1 : a.date > b2.date ? -1 : b2.id - a.id)).map((e, i) => row(e, i, 'room', 'room'))
+        .sort((a, b) => b.sum - a.sum),
+      rows: ra.es.slice().sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : b.id - a.id)).map((e, i) => row(e, i, 'room', 'room'))
     };
     rv.hasMats = rv.mats.length > 0;
 
     // ---------- workers ----------
     const cr = s.crews.find((c) => c.id === s.crewId) || s.crews[0] || null;
-    let crew = { name: '', sub: '', start: '', end: '', endHint: '', stats: [], rangeText: '', cells: [], money: [], people: '', rate: '', hasBalance: false, payLabel: '' };
+    let crew = { name: '', sub: '', status: '', statusBg: '', statusFg: '', start: '', stats: [], rangeText: '', cells: [], money: [], payments: [], hasPayments: false, payHint: '',
+      people: '', rate: '', canFinish: false, finishing: false, isFinished: false, finishDate: today, finishedText: '' };
     if (cr) {
       const upd = (p) => this.setState((st) => ({ crews: st.crews.map((c) => (c.id === cr.id ? Object.assign({}, c, p) : c)) }));
       const last = cr.end || today;
@@ -1250,99 +1599,108 @@ class Component extends DCLogic {
       const cells = [];
       const lead = (this.parse(cr.start).getDay() + 6) % 7;
       for (let i = 0; i < lead; i++) cells.push({ blank: true, vis: 'hidden', num: '', tag: '', aria: '', pressed: 'false', border: '0', bg: 'transparent', fg: 'transparent', toggle: () => {} });
-      let worked = 0, hol = 0, left = 0;
+      let worked = 0, hol = 0;
       for (let i = 0; i <= span; i++) {
         const day = this.addDays(cr.start, i);
         const isOff = cr.holidays.indexOf(day) >= 0;
-        const future = day > today;
-        if (future) { if (!isOff) left += 1; } else if (isOff) hol += 1; else worked += 1;
+        if (isOff) hol += 1; else worked += 1;
         const st = isOff ? { bg: '#FFFFFF', fg: '#9E2A1E', border: '1.5px dashed #9E2A1E', tag: 'Off' }
-          : future ? { bg: '#EAE3D8', fg: '#5C564C', border: '1px solid #EAE3D8', tag: '' }
           : { bg: '#1F1C17', fg: '#FFFFFF', border: '1px solid #1F1C17', tag: day === today ? 'Today' : '' };
-        const dt = this.parse(day);
         cells.push(Object.assign(st, {
-          blank: false, vis: 'visible', num: String(dt.getDate()), pressed: String(isOff),
-          aria: this.short(day) + (isOff ? ', holiday. Tap to mark as worked' : future ? ', coming up. Tap to mark as holiday' : ', worked. Tap to mark as holiday'),
+          blank: false, vis: 'visible', num: String(this.parse(day).getDate()), pressed: String(isOff),
+          aria: this.short(day) + (isOff ? ', holiday. Tap to mark as worked' : ', worked. Tap to mark as holiday'),
           toggle: () => upd({ holidays: isOff ? cr.holidays.filter((h) => h !== day) : cr.holidays.concat([day]) })
         }));
       }
-      const people = parseInt(cr.people, 10) || 0, rate = parseFloat(cr.rate) || 0;
-      const due = worked * people * rate;
-      const paid = sumOf(all.filter((e) => e.cat === cr.trade && e.date >= cr.start && e.date <= last));
+      const ppl = parseInt(cr.people, 10) || 0, rate = parseFloat(cr.rate) || 0;
+      const due = worked * ppl * rate;
+      const pays = all.filter((e) => e.crewId === cr.id).sort((a, b) => (a.date < b.date ? 1 : -1));
+      const paid = sumOf(pays);
       const bal = due - paid;
-      const tradeLabel = (L.trades.find((t) => t[0] === cr.trade) || [0, 'Workers'])[1];
+      const catLabel = C[cr.trade] ? C[cr.trade].label : 'Labour';
+      const others = s.crews.filter((c) => c.trade === cr.trade && c.id !== cr.id && !c.end).length;
       crew = {
-        name: cr.name, sub: tradeLabel + ' · ' + people + (people === 1 ? ' person' : ' people') + ' · ' + this.money(rate) + ' each a day',
-        start: cr.start, end: cr.end || '',
+        name: cr.name, sub: catLabel + ' · ' + ppl + (ppl === 1 ? ' person' : ' people') + ' · ' + this.money(rate) + ' each a day',
+        status: cr.end ? 'Finished' : 'Working', statusBg: cr.end ? '#EAE3D8' : '#E7EFE6', statusFg: cr.end ? '#1F1C17' : '#2F5A2B',
+        start: cr.start,
         onStart: (e) => e.target.value && upd({ start: e.target.value }),
-        onEnd: (e) => upd({ end: e.target.value || null }),
-        endHint: cr.end ? (cr.end >= today ? 'Planned to finish ' + this.dayLabel(cr.end) + '.' : 'Finished ' + this.short(cr.end) + '.') : 'No end date yet, so the calendar runs to today.',
-        stats: [{ k: 'Days worked', v: String(worked) }, { k: 'Holidays', v: String(hol) }, { k: 'Days to go', v: String(left) }],
-        rangeText: this.short(cr.start) + ' – ' + this.short(last), cells,
+        stats: [{ k: 'Days worked', v: String(worked) }, { k: 'Holidays', v: String(hol) }, { k: 'Total days', v: String(span + 1) }],
+        rangeText: this.short(cr.start) + ' – ' + (cr.end ? this.short(cr.end) : 'today'), cells,
         sundaysOff: () => {
           const sundays = [];
           for (let i = 0; i <= span; i++) { const day = this.addDays(cr.start, i); if (this.parse(day).getDay() === 0) sundays.push(day); }
           upd({ holidays: Array.from(new Set(cr.holidays.concat(sundays))) });
           this.flash(sundays.length + ' Sundays marked as holidays');
         },
+        canFinish: !cr.end && !s.finishing, finishing: !cr.end && !!s.finishing, isFinished: !!cr.end,
+        finishDate: s.finishing ? s.finishing.date : today,
+        startFinish: () => this.setState({ finishing: { date: today } }),
+        onFinishDate: (e) => this.setState({ finishing: { date: e.target.value || today } }),
+        cancelFinish: () => this.setState({ finishing: null }),
+        confirmFinish: () => { upd({ end: (s.finishing && s.finishing.date) || today }); this.setState({ finishing: null }); this.flash(cr.name + ' marked finished'); },
+        finishedText: cr.end ? 'Last working day: ' + this.dayLabel(cr.end) : '',
+        reopen: () => upd({ end: null }),
         money: [
-          { k: 'Earned so far', hint: worked + ' days × ' + people + ' × ' + this.money(rate), v: this.money(due), weight: 400, border: '0' },
-          { k: 'Paid so far', hint: tradeLabel + ' payments since ' + this.short(cr.start), v: this.money(paid), weight: 400, border: '0' },
+          { k: 'Earned so far', hint: worked + ' days × ' + ppl + ' × ' + this.money(rate), v: this.money(due), weight: 400, border: '0' },
+          { k: 'Paid', hint: pays.length + (pays.length === 1 ? ' payment' : ' payments') + ' from Expenses', v: this.money(paid), weight: 400, border: '0' },
           { k: bal >= 0 ? 'Still to pay' : 'Paid in advance', hint: '', v: this.money(Math.abs(bal)), weight: 600, border: '1px solid #E4DDD1' }
         ],
+        hasPayments: pays.length > 0,
+        payments: pays.map((e, i) => ({ title: this.dayLabel(e.date),sub: ['paid by ' + e.paidBy, e.note].filter(Boolean).join(' · '),
+          amountText: this.money(e.amount), border: i === 0 ? '0' : '1px solid #EFE9DF',
+          open: () => this.setState({ screen: 'entry', entryId: e.id, entryBack: 'workers', confirmDel: false }) })),
+        payHint: 'To pay this crew, go to Add and choose ' + catLabel + '. ' + (others ? 'You will be asked which crew it is for.' : 'It is linked here on its own.'),
         people: cr.people, rate: cr.rate,
         onPeople: (e) => upd({ people: e.target.value.replace(/[^0-9]/g, '') }),
-        onRate: (e) => upd({ rate: e.target.value.replace(/[^0-9]/g, '') }),
-        hasBalance: bal > 0, payLabel: 'Pay ' + this.money(bal) + ' now',
-        pay: () => this.setState({ screen: 'add', step: 3, sub: false, done: false, draft: Object.assign(this.blankDraft(), {
-          amount: String(bal), cat: cr.trade, other: cr.trade === 'other' ? cr.name : '', note: 'Balance, ' + cr.name, fromReview: true }) })
+        onRate: (e) => upd({ rate: e.target.value.replace(/[^0-9]/g, '') })
       };
     }
     const ncd = s.newCrew;
+    const setNc = (p) => this.setState((st) => ({ newCrew: Object.assign({}, st.newCrew, p) }));
+    const ncOk = !!(ncd && ncd.name.trim() && ncd.trade && parseInt(ncd.people, 10) > 0);
     const nc = {
       show: !!ncd,
-      trades: L.trades.map(([id, label]) => Object.assign(chip(ncd && ncd.trade === id), { label, pressed: String(!!ncd && ncd.trade === id),
-        pick: () => this.setState((st) => ({ newCrew: Object.assign({}, st.newCrew, { trade: id }) })) })),
+      trades: L.crewCats.map((c) => Object.assign(chip(!!ncd && ncd.trade === c.id), { label: c.label, pressed: String(!!ncd && ncd.trade === c.id), pick: () => setNc({ trade: c.id }) })),
       name: ncd ? ncd.name : '', people: ncd ? ncd.people : '', rate: ncd ? ncd.rate : '', start: ncd ? ncd.start : today,
-      onName: (e) => this.setState((st) => ({ newCrew: Object.assign({}, st.newCrew, { name: e.target.value }) })),
-      onPeople: (e) => this.setState((st) => ({ newCrew: Object.assign({}, st.newCrew, { people: e.target.value.replace(/[^0-9]/g, '') }) })),
-      onRate: (e) => this.setState((st) => ({ newCrew: Object.assign({}, st.newCrew, { rate: e.target.value.replace(/[^0-9]/g, '') }) })),
-      onStart: (e) => this.setState((st) => ({ newCrew: Object.assign({}, st.newCrew, { start: e.target.value || today }) })),
+      onName: (e) => setNc({ name: e.target.value }),
+      onPeople: (e) => setNc({ people: e.target.value.replace(/[^0-9]/g, '') }),
+      onRate: (e) => setNc({ rate: e.target.value.replace(/[^0-9]/g, '') }),
+      onStart: (e) => setNc({ start: e.target.value || today }),
       cancel: () => this.setState({ newCrew: null }),
-      cantSave: !(ncd && ncd.name.trim() && parseInt(ncd.people, 10) > 0),
+      cantSave: !ncOk, saveBg: ncOk ? '#1F1C17' : '#E4DDD1', saveFg: ncOk ? '#FFFFFF' : '#5C564C',
       save: () => {
-        if (!(ncd && ncd.name.trim() && parseInt(ncd.people, 10) > 0)) return;
+        if (!ncOk) return;
         const id = Date.now();
         this.setState((st) => ({ crews: st.crews.concat([{ id, trade: ncd.trade, name: ncd.name.trim(), people: ncd.people, rate: ncd.rate, start: ncd.start, end: null, holidays: [] }]), crewId: id, newCrew: null }));
+        this.flash('Tracking ' + ncd.name.trim());
       }
     };
-    nc.saveBg = nc.cantSave ? '#E4DDD1' : '#1F1C17';
-    nc.saveFg = nc.cantSave ? '#5C564C' : '#FFFFFF';
 
     // ---------- chrome ----------
-    const tabOf = { add: 'add', return: 'add', list: 'list', entry: 'list', insights: 'insights', room: 'insights', workers: 'workers' }[s.screen];
+    const tabOf = { tasks: 'tasks', add: 'add', return: 'add', list: 'list', entry: 'list', insights: 'insights', room: 'insights', workers: 'workers' }[s.screen];
     const tab = (t) => ({ current: tabOf === t ? 'page' : 'false', color: tabOf === t ? '#1F1C17' : '#6B6459', line: tabOf === t ? '#1F1C17' : 'transparent' });
     const prog = (n, total) => Array.from({ length: total }, (_, i) => ({ color: i < n ? '#1F1C17' : '#DDD5C8' }));
-    let hdr = { hasBack: false, back: () => {}, backLabel: 'Back', kicker: 'Home renovation', title: '', right: '', hasProgress: false, progress: [] };
+    let hdr = { hasBack: false, back: () => {}, backLabel: 'Back', kicker: 'Home renovation', title: '', hasProgress: false, progress: [] };
     if (isAdd) {
       if (s.done) hdr = Object.assign(hdr, { title: 'Expense saved' });
       else hdr = Object.assign(hdr, {
         hasBack: s.step > 1 || s.sub, back: () => this.back(),
-        kicker: s.step === 5 ? (d.editingId ? 'Editing' : 'Last step') : 'Step ' + s.step + ' of 4',
-        title: d.editingId ? 'Edit expense' : 'New expense', right: s.step > 1 && amt > 0 ? this.money(amt) : '',
-        hasProgress: true, progress: prog(Math.min(s.step, 4), 4)
+        kicker: (s.step === 5 ? (d.editingId ? 'Editing' : 'Last step') : 'Step ' + s.step + ' of 4') + (s.step > 1 && amt > 0 ? ' · ' + this.money(amt) : ''),
+        title: d.editingId ? 'Edit expense' : 'New expense', hasProgress: true, progress: prog(Math.min(s.step, 4), 4)
       });
     } else if (isReturn) {
       hdr = Object.assign(hdr, {
-        hasBack: !rt.done, backLabel: 'Back',
+        hasBack: !rt.done,
         back: () => (rt.step === 2 ? this.setRet({ step: 1 }) : this.setState({ screen: 'add', step: 1, sub: false, done: false })),
         kicker: rt.done ? 'Home renovation' : 'Step ' + rt.step + ' of 2', title: 'Record a return',
         hasProgress: !rt.done, progress: prog(rt.step, 2)
       });
+    } else if (s.screen === 'tasks') {
+      hdr = Object.assign(hdr, { title: 'Tasks' });
     } else if (s.screen === 'list') {
-      hdr = Object.assign(hdr, { title: 'Expenses', right: 'Net ' + this.money(net) });
+      hdr = Object.assign(hdr, { title: 'Expenses' });
     } else if (s.screen === 'entry') {
-      hdr = Object.assign(hdr, { hasBack: true, backLabel: 'Back', back: () => this.setState({ screen: s.entryBack, confirmDel: false }), kicker: ee ? this.dayLabel(ee.date) : '', title: ee && ee.kind === 'return' ? 'Return' : 'Expense' });
+      hdr = Object.assign(hdr, { hasBack: true, back: () => this.setState({ screen: s.entryBack, confirmDel: false }), kicker: ee ? this.dayLabel(ee.date) : '', title: ee && ee.kind === 'return' ? 'Return' : 'Expense' });
     } else if (s.screen === 'insights') {
       hdr = Object.assign(hdr, { title: 'Insights' });
     } else if (s.screen === 'room') {
@@ -1358,9 +1716,10 @@ class Component extends DCLogic {
         prim('Add another', () => this.addAnother(), true));
     } else if (isAdd) {
       const ok = this.stepValid();
-      const hints = { 1: 'Enter an amount to continue', 2: s.sub ? (d.cat === 'material' ? 'Pick a material' : 'Write what it was for') : 'Pick one', 3: 'Pick a room' };
+      const subHint = sk === 'mat' ? 'Pick a material' : sk === 'other' ? 'Write what it was for' : 'Pick a crew';
+      const hints = { 1: 'Enter an amount to continue', 2: s.sub ? subHint : 'Pick one', 3: 'Pick a room' };
       bar = Object.assign(bar, { show: true, hasHint: !ok && !!hints[s.step], hint: hints[s.step] || '' },
-        prim(s.step === 5 ? (d.editingId ? 'Save changes' : 'Save expense') : d.fromReview && s.step < 5 && d.room && d.cat ? 'Back to review' : 'Next', () => this.next(), ok));
+        prim(s.step === 5 ? (d.editingId ? 'Save changes' : 'Save expense') : d.fromReview && d.room && d.cat ? 'Back to review' : 'Next', () => this.next(), ok));
     } else if (isReturn && rt.step === 2 && !rt.done) {
       bar = Object.assign(bar, { show: true, hasHint: !retValid, hint: !(ramt > 0) ? 'Enter the amount you got back' : tooMuch ? 'Amount is more than the bill' : 'Write what you returned' },
         prim('Save return', () => this.saveReturn(), !!retValid));
@@ -1368,29 +1727,33 @@ class Component extends DCLogic {
       const o = byId[rt.lastOf];
       bar = Object.assign(bar, { show: true, hasSecondary: true, secondaryLabel: 'Done', secondary: () => this.setState({ screen: 'list', ret: this.blankRet() }) },
         prim('Add replacement', () => this.setState({ ret: this.blankRet(), screen: 'add', step: 1, sub: false, done: false,
-          draft: Object.assign(this.blankDraft(), o ? { cat: o.cat, other: o.other || '', matType: o.matType, room: o.room, fromReview: true } : {}) }), true));
+          draft: Object.assign(this.blankDraft(), o ? { cat: o.cat, other: o.other || '', matType: o.matType, room: o.room, crew: o.crewId || 'none', fromReview: true } : {}) }), true));
     }
 
     const go = (screen) => () => this.setState((st) => (screen === 'add' && st.screen === 'add' && st.done
       ? { step: 1, sub: false, done: false, draft: this.blankDraft({ date: st.draft.date, dateMode: st.draft.dateMode }) }
-      : { screen, confirmDel: false }));
+      : { screen, confirmDel: false, finishing: null }));
+    const isWho = s.screen === 'who';
 
     return {
-      me, today, hdr, w, r, bar, ent, ins, rv, crew, nc,
-      tabs: { add: tab('add'), list: tab('list'), insights: tab('insights'), workers: tab('workers') },
-      goAdd: go('add'), goList: go('list'), goInsights: go('insights'), goWorkers: go('workers'),
+      me, meInitial: me[0], userAria: 'Using as ' + me + '. Switch person', switchUser: () => this.setState({ screen: 'who' }),
+      today, hdr, w, r, bar, ent, ins, rv, crew, nc, tk, people,
+      showHeader: !isWho, showNav: !isWho, isWho, isTasks: s.screen === 'tasks',
+      tabs: { tasks: tab('tasks'), add: tab('add'), list: tab('list'), insights: tab('insights'), workers: tab('workers') },
+      goTasks: go('tasks'), goAdd: go('add'), goList: go('list'), goInsights: go('insights'), goWorkers: go('workers'),
       startReturn: () => this.setState({ screen: 'return', ret: this.blankRet() }),
       isList: s.screen === 'list', isEntry: s.screen === 'entry' && !!ee, isInsights: s.screen === 'insights', isRoom: s.screen === 'room', isWorkers: s.screen === 'workers',
       hasSample: s.hasSample,
-      clearSample: () => this.setState((st) => ({ expenses: st.expenses.filter((x) => !x.sample), hasSample: false, room: null, crews: [], crewId: null })),
+      clearSample: () => this.setState((st) => ({ expenses: st.expenses.filter((x) => !x.sample), tasks: st.tasks.filter((x) => !x.sample), hasSample: false, room: null, crews: [], crewId: null })),
+      listCount: nExp + ' expenses' + (nRet ? ', ' + nRet + (nRet === 1 ? ' return' : ' returns') : ''), listNet: 'Net ' + this.money(net),
       groupOpts: [['date', 'Date'], ['room', 'Room'], ['cat', 'Category']].map(([id, label]) => ({
         label, pressed: String(s.groupBy === id), bg: s.groupBy === id ? '#FFFFFF' : 'transparent', fg: s.groupBy === id ? '#1F1C17' : '#5C564C',
         pick: () => this.setState({ groupBy: id }) })),
       groups, hasEntries: all.length > 0, noEntries: all.length === 0,
       legend: L.types.map((k) => ({ name: k, color: TC[k] })),
       budget: s.budget, onBudget: (e) => this.setState({ budget: e.target.value.replace(/[^0-9]/g, '') }),
-      crewChips: s.crews.map((c) => Object.assign(chip(cr && c.id === cr.id), { label: c.name, pressed: String(!!cr && c.id === cr.id), pick: () => this.setState({ crewId: c.id, newCrew: null }) })),
-      openNewCrew: () => this.setState({ newCrew: { trade: 'painter', name: '', people: '2', rate: '', start: today } }),
+      crewChips: s.crews.map((c) => Object.assign(chip(cr && c.id === cr.id), { label: c.name, pressed: String(!!cr && c.id === cr.id), pick: () => this.setState({ crewId: c.id, newCrew: null, finishing: null }) })),
+      openNewCrew: () => this.setState({ newCrew: { trade: null, name: '', people: '1', rate: '', start: today }, finishing: null }),
       hasCrew: !!cr && !ncd, noCrew: !cr && !ncd,
       hasToast: !!s.toast, toast: s.toast
     };
