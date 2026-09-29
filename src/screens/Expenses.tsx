@@ -29,9 +29,9 @@ export function Expenses() {
       <main className="main">
         <div className="stack g16">
           <SampleBanner />
-          <div className="row between g8" style={{ padding: '0 0.25rem' }}>
-            <span className="t15 muted">{plural(nExp, 'expense', 'expenses')}{nRet ? ` and ${plural(nRet, 'return', 'returns')}` : ''}</span>
+          <div className="stack g2" style={{ padding: '0 0.25rem' }}>
             <span className="t17 b8 num">Total after returns: {money(sumOf(active))}</span>
+            <span className="t15 muted">{plural(nExp, 'expense', 'expenses')}{nRet ? ` and ${plural(nRet, 'return', 'returns')}` : ''}</span>
           </div>
           <Segmented label="Group by" value={groupBy} options={[['date', 'Date'], ['room', 'Room'], ['cat', 'Category']]} onChange={setGroupBy} />
           {groups.length ? (

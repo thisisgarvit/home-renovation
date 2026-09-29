@@ -9,14 +9,14 @@ const PORT = 4179;
 const URL = `http://localhost:${PORT}/`;
 const SHOTS = process.env.SHOTS === '1';
 
-const server = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--strictPort'], { stdio: 'pipe' });
+const server = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--strictPort'], { stdio: 'ignore', detached: true });
 for (let i = 0; ; i++) {
   try {
     if ((await fetch(URL)).ok) break;
   } catch {
     // not up yet
   }
-  if (i > 60) { server.kill(); throw new Error('vite preview did not start'); }
+  if (i > 60) { try { process.kill(-server.pid); } catch { /* */ } throw new Error('vite preview did not start'); }
   await new Promise((r) => setTimeout(r, 500));
 }
 
@@ -130,5 +130,6 @@ try {
   process.exitCode = 1;
 } finally {
   await browser.close();
-  server.kill();
+  try { process.kill(-server.pid); } catch { /* already stopped */ }
 }
+process.exit(process.exitCode ?? 0);

@@ -103,10 +103,22 @@ function useAppState() {
   const [needCode, setNeedCode] = useState(!DEMO && !getFamilyCode());
   const pending = useRef(0);
 
+  const codeChecked = useRef(DEMO);
+
   const reload = useCallback(async () => {
     if (pending.current > 0) return;
     try {
-      const snap = await (await storeReady).load();
+      const st = await storeReady;
+      // A wrong code isn't an error for the database (it just returns no rows), so check it explicitly once.
+      if (!codeChecked.current) {
+        if (!(await st.checkCode())) {
+          setNeedCode(true);
+          setLoading(false);
+          return;
+        }
+        codeChecked.current = true;
+      }
+      const snap = await st.load();
       setData(snap);
       setLoadError(null);
     } catch (e) {
@@ -188,7 +200,7 @@ function useAppState() {
     setFamilyCode(code);
     try {
       const ok = await (await storeReady).checkCode();
-      if (ok) { setNeedCode(false); setLoading(true); }
+      if (ok) { codeChecked.current = true; setNeedCode(false); setLoading(true); }
       return ok;
     } catch {
       return false;

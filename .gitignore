@@ -7,3 +7,4 @@ dist
 test-results
 *.log
 test-results-failure.png
+dist-live-check
